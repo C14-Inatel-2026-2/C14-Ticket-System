@@ -1,38 +1,160 @@
-Git Workflow
+# Git Workflow
 
-For the **Contributors**
+## For Contributors
 
-The main branch is protected, which means that no commit can be made directly.
-In order to implement new functionalities in the main, please open a Pull Request in another branch.
+The `main` branch is **protected**. Direct commits and pushes to `main` are not allowed.
 
-The workflow needs to be like:
+To implement a new feature, fix a bug, update documentation, or change project configuration, create a new branch and open a **Pull Request** targeting `main`.
 
-1 - git pull origin main                                    ### Pull the latest change in the main branch
-2 - git checkout -b <objective>/<name>                      ### Switch to a new branch
-3 - git add <changed_files | new_files | deleted_files>     ### Add the changed files to stage
-4 - git commit -m "<description>"                           ### Commit the changes with "ideally" a good comment
-5 - git push origin <branch_name>                           ### Push the changes to the new branch
+---
 
-*Important*
-All java files needs a Javadoc with the @author label.
-Without it the project cannot be built.
+## Workflow
 
-*Good Practice*
-Name the branch with a <objective> tag, where:
-feature : for new functionalities
-fix     : for error fixing
-chore   : for configuration (it doesnt add a new functionality, just change a configuration of some kind)
-docs    : for exclusivily changing/updating the documents
-tests   : for implementing/fixing tests
+```bash
+git pull origin main
+```
+
+Pull the latest changes from the `main` branch.
+
+```bash
+git checkout -b <type>/<name>
+```
+
+Create and switch to a new branch.
+
+```bash
+git add <files>
+```
+
+Add the changed, created, or deleted files to the staging area.
+
+```bash
+git commit -m "<description>"
+```
+
+Commit the changes using a clear and meaningful message.
+
+```bash
+git push -u origin <branch-name>
+```
+
+Push the new branch to GitHub.
+
+After pushing the branch, open a **Pull Request** targeting `main`.
+
+---
+
+## Pull Request Requirements
+
+Before a Pull Request can be merged:
+
+* Jenkins CI must complete successfully.
+* The required code review must be approved.
+* The branch must satisfy the repository protection rules.
+
+When the Pull Request resolves an Issue, reference it in the PR description:
+
+```text
+Closes #<issue-number>
+```
 
 Example:
-main
- |
- |- feature/create-ticket
- |- feature/login
- |- fix/ticket-validation
- |- chore/database-config
- |- doc/contributors
- | -tests/ticket-controller
 
+```text
+Closes #12
+```
+
+The Issue will be automatically closed after the Pull Request is merged.
+To just reference an Issue, just use #<issue-number> without the keyword "Closes".
+---
+
+## Important
+
+All Java files must contain Javadoc with an `@author` tag.
+
+Example:
+
+```java
+/**
+ * Handles ticket-related operations.
+ *
+ * @author Your Name
+ */
+public class TicketService {
+}
+```
+
+The project build will fail if the required `@author` documentation is missing.
+
+---
+
+## Branch Naming Convention
+
+Branches should follow this format:
+
+```text
+<type>/<short-description>
+```
+
+Prefer lowercase names and use hyphens between words.
+
+### `feature/`
+
+Used for new functionalities.
+
+```text
+feature/create-ticket
+feature/user-login
+```
+
+### `fix/`
+
+Used for bug fixes.
+
+```text
+fix/ticket-validation
+fix/database-connection
+```
+
+### `chore/`
+
+Used for configuration, maintenance, or infrastructure changes that do not directly add a new application feature.
+
+```text
+chore/database-config
+chore/docker-setup
+```
+
+### `docs/`
+
+Used exclusively for documentation changes.
+
+```text
+docs/contributing-guide
+docs/database
+```
+
+### `test/`
+
+Used for adding or updating tests.
+
+```text
+test/ticket-controller
+test/ticket-service
+```
+
+---
+
+## Example Branch Structure
+
+```text
+main
+│
+├── feature/create-ticket
+├── feature/login
+├── fix/ticket-validation
+├── chore/database-config
+├── docs/contributors
+└── test/ticket-controller
+```
 
