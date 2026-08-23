@@ -34,11 +34,11 @@ pipeline {
     post {
 
         success {
-            echo 'Build concluída com sucesso.'
+            echo 'Build success.'
         }
 
         failure {
-            echo 'Build falhou.'
+            echo 'Build failed.'
         }
 
     }
