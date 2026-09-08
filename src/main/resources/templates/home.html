@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Ticket System</title>
+
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+</head>
+
+<body>
+
+    <header>
+        <h1>Ticket System</h1>
+    </header>
+
+    <main>
+
+        <div class="page-header">
+            <h2>Tickets</h2>
+
+            <button class="new-ticket-button">
+                Novo Ticket
+            </button>
+        </div>
+
+        <div class="ticket-container">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome do Ticket</th>
+                        <th>Projeto</th>
+                        <th>Responsável</th>
+                        <th>Status</th>
+                        <th>Prioridade</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    <!-- Ticket de teste -->
+                    <tr>
+                        <td>#001</td>
+                        <td>Erro ao realizar login</td>
+                        <td>Sistema Web</td>
+                        <td>Rodrigo</td>
+                        <td>
+                            <span class="status open">
+                                Aberto
+                            </span>
+                        </td>
+                        <td>Alta</td>
+                    </tr>
+
+                    <tr>
+                        <td>#002</td>
+                        <td>Adicionar página de projetos</td>
+                        <td>Ticket System</td>
+                        <td>João</td>
+                        <td>
+                            <span class="status progress">
+                                Em andamento
+                            </span>
+                        </td>
+                        <td>Média</td>
+                    </tr>
+
+                    <tr>
+                        <td>#003</td>
+                        <td>Atualizar documentação</td>
+                        <td>Ticket System</td>
+                        <td>Maria</td>
+                        <td>
+                            <span class="status closed">
+                                Concluído
+                            </span>
+                        </td>
+                        <td>Baixa</td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+        </div>
+
+    </main>
+
+</body>
+</html>
