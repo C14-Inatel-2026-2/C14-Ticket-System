@@ -20,5 +20,25 @@ services:
       timeout: 5s
       retries: 10
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    image: c14-tickets-api:latest
+    container_name: c14-tickets-api
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tickets
+      SPRING_DATASOURCE_USERNAME: tickets
+      SPRING_DATASOURCE_PASSWORD: tickets
+
+    ports:
+      - "8080:8080"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres-data:
