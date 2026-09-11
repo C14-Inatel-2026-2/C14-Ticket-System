@@ -42,43 +42,37 @@
                 <tbody>
 
                     <!-- Ticket de teste -->
-                    <tr>
-                        <td>#001</td>
-                        <td>Erro ao realizar login</td>
-                        <td>Sistema Web</td>
-                        <td>Rodrigo</td>
+                    <tr th:each="ticket : ${tickets}">
+                        <td th:text="${ticket.id}"></td>
+                        <td th:text="${ticket.name}"></td>
+                        <td th:text="${ticket.project}"></td>
+                        <td th:text="${ticket.assignee}"></td>
                         <td>
-                            <span class="status open">
-                                Aberto
-                            </span>
+                            <div th:switch="${ticket.status}">
+                                <span th:case="${T(com.ibm.tickets.model.Status).OPEN}" class="status open">
+                                    Aberto
+                                </span>
+                                <span th:case="${T(com.ibm.tickets.model.Status).IN_PROGRESS}" class="status progress">
+                                    Em andamento
+                                </span>
+                                <span th:case="${T(com.ibm.tickets.model.Status).CLOSED}" class="status closed">
+                                    Concluído
+                                </span>
+                            </div>
                         </td>
-                        <td>Alta</td>
-                    </tr>
-
-                    <tr>
-                        <td>#002</td>
-                        <td>Adicionar página de projetos</td>
-                        <td>Ticket System</td>
-                        <td>João</td>
                         <td>
-                            <span class="status progress">
-                                Em andamento
-                            </span>
+                            <div th:switch="${ticket.priority}">
+                                <span th:case="${T(com.ibm.tickets.model.Priority).HIGH}">
+                                    Alta
+                                </span>
+                                <span th:case="${T(com.ibm.tickets.model.Priority).MEDIUM}">
+                                    Média
+                                </span>
+                                <span th:case="${T(com.ibm.tickets.model.Priority).LOW}">
+                                    Baixa
+                                </span>
+                            </div>
                         </td>
-                        <td>Média</td>
-                    </tr>
-
-                    <tr>
-                        <td>#003</td>
-                        <td>Atualizar documentação</td>
-                        <td>Ticket System</td>
-                        <td>Maria</td>
-                        <td>
-                            <span class="status closed">
-                                Concluído
-                            </span>
-                        </td>
-                        <td>Baixa</td>
                     </tr>
 
                 </tbody>
