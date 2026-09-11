@@ -33,7 +33,10 @@ public class TicketService {
                 request.title(),
                 request.description(),
                 request.priority());
-
+        
+        ticket.setProject(request.project());
+        ticket.setAssignee(request.assignee());
+        
         Ticket savedTicket = ticketRepository.saveAndFlush(ticket);
         return TicketResponse.from(savedTicket);
     }
@@ -63,6 +66,8 @@ public class TicketService {
 
         ticket.setTitle(request.title());
         ticket.setDescription(request.description());
+        ticket.setProject(request.project());
+        ticket.setAssignee(request.assignee());
         ticket.setPriority(request.priority());
 
         Ticket updatedTicket = ticketRepository.saveAndFlush(ticket);

@@ -12,6 +12,8 @@ import com.ibm.tickets.model.TicketStatus;
  * @param id ticket identifier
  * @param title ticket title
  * @param description ticket description
+ * @param project related project
+ * @param assignee person responsible for the ticket
  * @param status current ticket status
  * @param priority ticket priority
  * @param createdAt creation date
@@ -22,6 +24,8 @@ public record TicketResponse(
         Long id,
         String title,
         String description,
+        String project,
+        String assignee,
         TicketStatus status,
         TicketPriority priority,
         OffsetDateTime createdAt,
@@ -32,6 +36,8 @@ public record TicketResponse(
                 ticket.getId(),
                 ticket.getTitle(),
                 ticket.getDescription(),
+                ticket.getProject(),
+                ticket.getAssignee(),
                 ticket.getStatus(),
                 ticket.getPriority(),
                 ticket.getCreatedAt(),

@@ -33,6 +33,14 @@ public class Ticket {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
+    @Column(nullable = false, length = 100)
+    private String project = "General";
+
+    @Column(nullable = false, length = 100)
+    private String assignee = "Unassigned";
+
+    
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private TicketStatus status = TicketStatus.OPEN;
@@ -114,5 +122,21 @@ public class Ticket {
 
     public OffsetDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public String getProject() {
+    return project;
+    }
+
+    public void setProject(String project) {
+    this.project = project;
+    }
+
+    public String getAssignee() {
+    return assignee;
+    }
+
+    public void setAssignee(String assignee) {
+    this.assignee = assignee;
     }
 }

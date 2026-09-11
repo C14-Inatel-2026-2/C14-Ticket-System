@@ -36,28 +36,38 @@ class TicketServiceTest {
     private TicketService ticketService;
 
     @Test
-    void shouldCreateTicket() {
-        TicketRequest request = new TicketRequest(
-                "Printer problem",
-                "The printer is not working",
-                TicketPriority.HIGH);
+void shouldCreateTicket() {
+    TicketRequest request = new TicketRequest(
+            "Printer problem",
+            "The printer is not working",
+            "Internal Systems",
+            "Gabriel",
+            TicketPriority.HIGH);
 
-        when(ticketRepository.saveAndFlush(any(Ticket.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
+    when(ticketRepository.saveAndFlush(any(Ticket.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
 
-        TicketResponse response = ticketService.create(request);
+    TicketResponse response = ticketService.create(request);
 
-        assertAll(
-                () -> assertEquals("Printer problem", response.title()),
-                () -> assertEquals(
-                        "The printer is not working",
-                        response.description()),
-                () -> assertEquals(
-                        TicketPriority.HIGH,
-                        response.priority()));
+    assertAll(
+            () -> assertEquals(
+                    "Printer problem",
+                    response.title()),
+            () -> assertEquals(
+                    "The printer is not working",
+                    response.description()),
+            () -> assertEquals(
+                    "Internal Systems",
+                    response.project()),
+            () -> assertEquals(
+                    "Gabriel",
+                    response.assignee()),
+            () -> assertEquals(
+                    TicketPriority.HIGH,
+                    response.priority()));
 
-        verify(ticketRepository).saveAndFlush(any(Ticket.class));
-    }
+    verify(ticketRepository).saveAndFlush(any(Ticket.class));
+}
 
     @Test
     void shouldThrowExceptionWhenTicketDoesNotExist() {
