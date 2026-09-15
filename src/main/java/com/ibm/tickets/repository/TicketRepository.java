@@ -1,28 +1,21 @@
 package com.ibm.tickets.repository;
 
-import org.springframework.stereotype.Repository;
 import java.util.List;
 
-import com.ibm.tickets.model.Ticket;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.io.IOException;
-import java.io.InputStream;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.core.type.TypeReference;
+import com.ibm.tickets.model.Ticket;
+import com.ibm.tickets.model.TicketStatus;
 
 /**
- * Ticket
- * @author Mariana Barude Pina
+ * Provides database operations for tickets.
+ *
+ * @author Gabriel Guimaraes
  */
+public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
-@Repository
-public class TicketRepository {
+    List<Ticket> findAllByOrderByCreatedAtDesc();
 
-    public List<Ticket> getAllTickets() throws IOException{
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("data/tickets.json");
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        return objectMapper.readValue(inputStream, new TypeReference<List<Ticket>>() {});
-    }
-
+    List<Ticket> findAllByStatusOrderByCreatedAtDesc(
+            TicketStatus status);
 }

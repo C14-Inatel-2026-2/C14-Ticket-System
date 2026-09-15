@@ -1,41 +1,83 @@
 package com.ibm.tickets.service;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.ibm.tickets.model.Priority;
-import com.ibm.tickets.model.Status;
+import com.ibm.tickets.dto.TicketRequest;
+import com.ibm.tickets.dto.TicketResponse;
+import com.ibm.tickets.exception.TicketNotFoundException;
 import com.ibm.tickets.model.Ticket;
+import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.repository.TicketRepository;
 
-public class TicketServiceTest {
+/**
+ * Unit tests for TicketService.
+ *
+ * @author Gabriel Guimaraes
+ */
+@ExtendWith(MockitoExtension.class)
+class TicketServiceTest {
 
-    class TicketRepositoryMock extends TicketRepository{
-        @Override
-        public List<Ticket> getAllTickets() throws IOException{
-            Ticket ticket1 = new Ticket(1, "Ticket de teste 1", "Projeto A", "Mariana",
-            Status.OPEN, Priority.HIGH);
+    @Mock
+    private TicketRepository ticketRepository;
 
-            Ticket ticket2 = new Ticket(2, "Ticket de teste 2", "Projeto B", "Guima",
-            Status.IN_PROGRESS, Priority.MEDIUM);
+    @InjectMocks
+    private TicketService ticketService;
 
-            List<Ticket> tickets = new ArrayList<>();
-            tickets.add(ticket1);
-            tickets.add(ticket2);
-            return tickets;
-        }
-    }
     @Test
-    void returnAllTickets() throws IOException{
-        TicketRepositoryMock mock = new TicketRepositoryMock();
-        TicketService service = new TicketService(mock);
+void shouldCreateTicket() {
+    TicketRequest request = new TicketRequest(
+            "Printer problem",
+            "The printer is not working",
+            "Internal Systems",
+            "Gabriel",
+            TicketPriority.HIGH);
 
-        List<Ticket> tickets = service.getAllTickets();
-        assertEquals("Ticket de teste 1", tickets.get(0).getName());
-        assertEquals("Ticket de teste 2", tickets.get(1).getName());
+    when(ticketRepository.saveAndFlush(any(Ticket.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+    TicketResponse response = ticketService.create(request);
+
+    assertAll(
+            () -> assertEquals(
+                    "Printer problem",
+                    response.title()),
+            () -> assertEquals(
+                    "The printer is not working",
+                    response.description()),
+            () -> assertEquals(
+                    "Internal Systems",
+                    response.project()),
+            () -> assertEquals(
+                    "Gabriel",
+                    response.assignee()),
+            () -> assertEquals(
+                    TicketPriority.HIGH,
+                    response.priority()));
+
+    verify(ticketRepository).saveAndFlush(any(Ticket.class));
+}
+
+    @Test
+    void shouldThrowExceptionWhenTicketDoesNotExist() {
+        when(ticketRepository.findById(99L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                TicketNotFoundException.class,
+                () -> ticketService.findById(99L));
+
+        verify(ticketRepository).findById(99L);
     }
 }

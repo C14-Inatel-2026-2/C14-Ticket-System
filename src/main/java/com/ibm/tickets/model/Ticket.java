@@ -1,68 +1,142 @@
 package com.ibm.tickets.model;
 
-/**
- * Ticket
- * @author Mariana Barude Pina
- */
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+
+/**
+ * Represents a ticket stored in the database.
+ *
+ * @author Gabriel Guimaraes
+ */
+@Entity
+@Table(name = "tickets")
 public class Ticket {
 
-    private Integer id;
-    private String name;
-    private String project;
-    private String assignee;
-    private Status status;
-    private Priority priority;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    public Ticket(Integer id, String name, String project, String assignee, Status status, Priority priority){
-        this.id = id;
-        this.name = name;
-        this.project = project;
-        this.assignee = assignee;
+    @Column(nullable = false, length = 150)
+    private String title;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String description;
+
+    @Column(nullable = false, length = 100)
+    private String project = "General";
+
+    @Column(nullable = false, length = 100)
+    private String assignee = "Unassigned";
+
+    
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private TicketStatus status = TicketStatus.OPEN;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private TicketPriority priority = TicketPriority.MEDIUM;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private OffsetDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private OffsetDateTime updatedAt;
+
+    protected Ticket() {
+    }
+
+    public Ticket(
+            String title,
+            String description,
+            TicketPriority priority) {
+        this.title = title;
+        this.description = description;
+        this.priority = priority;
+        this.status = TicketStatus.OPEN;
+    }
+
+    @PrePersist
+    private void beforeInsert() {
+        OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    private void beforeUpdate() {
+        updatedAt = OffsetDateTime.now(ZoneOffset.UTC);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public TicketStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(TicketStatus status) {
         this.status = status;
+    }
+
+    public TicketPriority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(TicketPriority priority) {
         this.priority = priority;
     }
 
-    public void setId(Integer id){
-        this.id = id;
-    }
-    public Integer getId(){
-        return this.id;
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setName(String name){
-        this.name = name;
-    }
-    public String getName(){
-        return this.name;
+    public OffsetDateTime getUpdatedAt() {
+        return updatedAt;
     }
 
-    public void setProject(String project){
-        this.project = project;
-    }
-    public String getProject(){
-        return this.project;
+    public String getProject() {
+    return project;
     }
 
-    public void setAssignee(String assignee){
-        this.assignee = assignee;
-    }
-    public String getAssignee(){
-        return this.assignee;
+    public void setProject(String project) {
+    this.project = project;
     }
 
-    public void setStatus(Status status){
-        this.status = status;
-    }
-    public Status getStatus(){
-        return this.status;
+    public String getAssignee() {
+    return assignee;
     }
 
-    public void setPriority(Priority priority){
-        this.priority = priority;
+    public void setAssignee(String assignee) {
+    this.assignee = assignee;
     }
-    public Priority getPriority(){
-        return this.priority;
-    }
-
 }
