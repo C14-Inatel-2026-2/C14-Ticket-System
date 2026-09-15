@@ -133,3 +133,8 @@ tbody tr:hover {
     background-color: #d1e7dd;
     color: #0f5132;
 }
+
+.status.resolved {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}

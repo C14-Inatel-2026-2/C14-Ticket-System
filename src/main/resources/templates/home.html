@@ -40,41 +40,70 @@
                 </thead>
 
                 <tbody>
-
-                    <!-- Ticket de teste -->
                     <tr th:each="ticket : ${tickets}">
-                        <td th:text="${ticket.id}"></td>
-                        <td th:text="${ticket.name}"></td>
-                        <td th:text="${ticket.project}"></td>
-                        <td th:text="${ticket.assignee}"></td>
+                        <td th:text="${'#' + #numbers.formatInteger(ticket.id, 3)}">
+                            #001
+                        </td>
+                        <td th:text="${ticket.title}">
+                            Nome do ticket
+                        </td>
+                        <td th:text="${ticket.project}">
+                            Projeto
+                        </td>
+                        <td th:text="${ticket.assignee}">
+                            Responsável
+                        </td>
                         <td>
                             <div th:switch="${ticket.status}">
-                                <span th:case="${T(com.ibm.tickets.model.Status).OPEN}" class="status open">
+                                <span
+                                    th:case="${T(com.ibm.tickets.model.TicketStatus).OPEN}"
+                                    class="status open">
                                     Aberto
                                 </span>
-                                <span th:case="${T(com.ibm.tickets.model.Status).IN_PROGRESS}" class="status progress">
+                                <span
+                                    th:case="${T(com.ibm.tickets.model.TicketStatus).IN_PROGRESS}"
+                                    class="status progress">
                                     Em andamento
                                 </span>
-                                <span th:case="${T(com.ibm.tickets.model.Status).CLOSED}" class="status closed">
-                                    Concluído
+                                <span
+                                    th:case="${T(com.ibm.tickets.model.TicketStatus).RESOLVED}"
+                                    class="status resolved">
+                                    Resolvido
+                                </span>
+                                <span
+                                    th:case="${T(com.ibm.tickets.model.TicketStatus).CLOSED}"
+                                    class="status closed">
+                                    Fechado
                                 </span>
                             </div>
                         </td>
                         <td>
                             <div th:switch="${ticket.priority}">
-                                <span th:case="${T(com.ibm.tickets.model.Priority).HIGH}">
-                                    Alta
+                                <span
+                                    th:case="${T(com.ibm.tickets.model.TicketPriority).LOW}">
+                                    Baixa
                                 </span>
-                                <span th:case="${T(com.ibm.tickets.model.Priority).MEDIUM}">
+                                <span
+                                    th:case="${T(com.ibm.tickets.model.TicketPriority).MEDIUM}">
                                     Média
                                 </span>
-                                <span th:case="${T(com.ibm.tickets.model.Priority).LOW}">
-                                    Baixa
+                                <span
+                                    th:case="${T(com.ibm.tickets.model.TicketPriority).HIGH}">
+                                    Alta
+                                </span>
+                                <span
+                                    th:case="${T(com.ibm.tickets.model.TicketPriority).URGENT}">
+                                    Urgente
                                 </span>
                             </div>
                         </td>
                     </tr>
 
+                    <tr th:if="${#lists.isEmpty(tickets)}">
+                        <td colspan="6" class="empty-message">
+                            Nenhum ticket encontrado.
+                        </td>
+                    </tr>
                 </tbody>
             </table>
 
