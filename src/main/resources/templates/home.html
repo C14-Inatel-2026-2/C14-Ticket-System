@@ -40,47 +40,70 @@
                 </thead>
 
                 <tbody>
-
-                    <!-- Ticket de teste -->
-                    <tr>
-                        <td>#001</td>
-                        <td>Erro ao realizar login</td>
-                        <td>Sistema Web</td>
-                        <td>Rodrigo</td>
-                        <td>
-                            <span class="status open">
-                                Aberto
-                            </span>
+                    <tr th:each="ticket : ${tickets}">
+                        <td th:text="${'#' + #numbers.formatInteger(ticket.id, 3)}">
+                            #001
                         </td>
-                        <td>Alta</td>
+                        <td th:text="${ticket.title}">
+                            Nome do ticket
+                        </td>
+                        <td th:text="${ticket.project}">
+                            Projeto
+                        </td>
+                        <td th:text="${ticket.assignee}">
+                            Responsável
+                        </td>
+                        <td>
+                            <div th:switch="${ticket.status}">
+                                <span
+                                    th:case="${T(com.ibm.tickets.model.TicketStatus).OPEN}"
+                                    class="status open">
+                                    Aberto
+                                </span>
+                                <span
+                                    th:case="${T(com.ibm.tickets.model.TicketStatus).IN_PROGRESS}"
+                                    class="status progress">
+                                    Em andamento
+                                </span>
+                                <span
+                                    th:case="${T(com.ibm.tickets.model.TicketStatus).RESOLVED}"
+                                    class="status resolved">
+                                    Resolvido
+                                </span>
+                                <span
+                                    th:case="${T(com.ibm.tickets.model.TicketStatus).CLOSED}"
+                                    class="status closed">
+                                    Fechado
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div th:switch="${ticket.priority}">
+                                <span
+                                    th:case="${T(com.ibm.tickets.model.TicketPriority).LOW}">
+                                    Baixa
+                                </span>
+                                <span
+                                    th:case="${T(com.ibm.tickets.model.TicketPriority).MEDIUM}">
+                                    Média
+                                </span>
+                                <span
+                                    th:case="${T(com.ibm.tickets.model.TicketPriority).HIGH}">
+                                    Alta
+                                </span>
+                                <span
+                                    th:case="${T(com.ibm.tickets.model.TicketPriority).URGENT}">
+                                    Urgente
+                                </span>
+                            </div>
+                        </td>
                     </tr>
 
-                    <tr>
-                        <td>#002</td>
-                        <td>Adicionar página de projetos</td>
-                        <td>Ticket System</td>
-                        <td>João</td>
-                        <td>
-                            <span class="status progress">
-                                Em andamento
-                            </span>
+                    <tr th:if="${#lists.isEmpty(tickets)}">
+                        <td colspan="6" class="empty-message">
+                            Nenhum ticket encontrado.
                         </td>
-                        <td>Média</td>
                     </tr>
-
-                    <tr>
-                        <td>#003</td>
-                        <td>Atualizar documentação</td>
-                        <td>Ticket System</td>
-                        <td>Maria</td>
-                        <td>
-                            <span class="status closed">
-                                Concluído
-                            </span>
-                        </td>
-                        <td>Baixa</td>
-                    </tr>
-
                 </tbody>
             </table>
 
