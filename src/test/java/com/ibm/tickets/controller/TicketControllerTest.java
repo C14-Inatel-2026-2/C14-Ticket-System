@@ -1,6 +1,7 @@
 package com.ibm.tickets.controller;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
@@ -10,6 +11,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -77,7 +80,8 @@ class TicketControllerTest {
                 .andExpect(jsonPath("$.priority")
                         .value("HIGH"));
     }
-        @Test
+
+    @Test
     void shouldReturnBadRequestWhenTitleIsBlank() throws Exception {
         mockMvc.perform(post("/api/tickets")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -99,5 +103,69 @@ class TicketControllerTest {
                         .value("One or more fields are invalid."))
                 .andExpect(jsonPath("$.errors.title")
                         .value("Title is required"));
+    }
+
+    @Test
+    void shouldListTickets() throws Exception {
+        OffsetDateTime now = OffsetDateTime.parse(
+                "2026-09-18T15:00:00Z");
+
+        TicketResponse response = new TicketResponse(
+                1L,
+                "Printer problem",
+                "The printer is not working",
+                "Internal Systems",
+                "Gabriel",
+                TicketStatus.OPEN,
+                TicketPriority.HIGH,
+                now,
+                now);
+
+        when(ticketService.findAll(null))
+                .thenReturn(List.of(response));
+
+        mockMvc.perform(get("/api/tickets"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].title")
+                        .value("Printer problem"))
+                .andExpect(jsonPath("$[0].status")
+                        .value("OPEN"))
+                .andExpect(jsonPath("$[0].priority")
+                        .value("HIGH"));
+    }
+
+    @Test
+    void shouldUpdateTicketStatus() throws Exception {
+        OffsetDateTime now = OffsetDateTime.parse(
+                "2026-09-18T15:00:00Z");
+
+        TicketResponse response = new TicketResponse(
+                1L,
+                "Printer problem",
+                "The printer is not working",
+                "Internal Systems",
+                "Gabriel",
+                TicketStatus.IN_PROGRESS,
+                TicketPriority.HIGH,
+                now,
+                now);
+
+        when(ticketService.updateStatus(
+                1L,
+                TicketStatus.IN_PROGRESS))
+                .thenReturn(response);
+
+        mockMvc.perform(patch("/api/tickets/1/status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                          "status": "IN_PROGRESS"
+                        }
+                        """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.status")
+                        .value("IN_PROGRESS"));
     }
 }
