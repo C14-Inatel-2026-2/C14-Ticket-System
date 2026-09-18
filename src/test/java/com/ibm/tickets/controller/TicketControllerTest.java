@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.ibm.tickets.dto.TicketRequest;
 import com.ibm.tickets.dto.TicketResponse;
+import com.ibm.tickets.exception.TicketNotFoundException;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
 import com.ibm.tickets.service.TicketService;
@@ -167,5 +168,19 @@ class TicketControllerTest {
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.status")
                         .value("IN_PROGRESS"));
+    }
+        @Test
+    void shouldReturnNotFoundWhenTicketDoesNotExist()
+            throws Exception {
+
+        when(ticketService.findById(99L))
+                .thenThrow(new TicketNotFoundException(99L));
+
+        mockMvc.perform(get("/api/tickets/99"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.title")
+                        .value("Ticket not found"))
+                .andExpect(jsonPath("$.status")
+                        .value(404));
     }
 }
