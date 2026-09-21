@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -14,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -182,5 +184,80 @@ class TicketControllerTest {
                         .value("Ticket not found"))
                 .andExpect(jsonPath("$.status")
                         .value(404));
+    }
+        @Test
+    void shouldFindTicketById() throws Exception {
+        OffsetDateTime now = OffsetDateTime.parse(
+                "2026-09-18T15:00:00Z");
+
+        TicketResponse response = new TicketResponse(
+                1L,
+                "Printer problem",
+                "The printer is not working",
+                "Internal Systems",
+                "Gabriel",
+                TicketStatus.OPEN,
+                TicketPriority.HIGH,
+                now,
+                now);
+
+        when(ticketService.findById(1L))
+                .thenReturn(response);
+
+        mockMvc.perform(get("/api/tickets/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.title")
+                        .value("Printer problem"))
+                .andExpect(jsonPath("$.project")
+                        .value("Internal Systems"))
+                .andExpect(jsonPath("$.assignee")
+                        .value("Gabriel"))
+                .andExpect(jsonPath("$.status")
+                        .value("OPEN"))
+                .andExpect(jsonPath("$.priority")
+                        .value("HIGH"));
+    }
+
+    @Test
+    void shouldUpdateTicket() throws Exception {
+        OffsetDateTime now = OffsetDateTime.parse(
+                "2026-09-18T15:00:00Z");
+
+        TicketResponse response = new TicketResponse(
+                1L,
+                "Updated printer problem",
+                "The printer continues to fail",
+                "Internal Systems",
+                "Gabriel",
+                TicketStatus.OPEN,
+                TicketPriority.URGENT,
+                now,
+                now);
+
+        when(ticketService.update(
+                eq(1L),
+                any(TicketRequest.class)))
+                .thenReturn(response);
+
+        mockMvc.perform(put("/api/tickets/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                          "title": "Updated printer problem",
+                          "description": "The printer continues to fail",
+                          "project": "Internal Systems",
+                          "assignee": "Gabriel",
+                          "priority": "URGENT"
+                        }
+                        """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.title")
+                        .value("Updated printer problem"))
+                .andExpect(jsonPath("$.description")
+                        .value("The printer continues to fail"))
+                .andExpect(jsonPath("$.priority")
+                        .value("URGENT"));
     }
 }
