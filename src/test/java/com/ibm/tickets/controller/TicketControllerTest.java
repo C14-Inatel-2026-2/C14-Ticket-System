@@ -6,12 +6,14 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -259,5 +261,26 @@ class TicketControllerTest {
                         .value("The printer continues to fail"))
                 .andExpect(jsonPath("$.priority")
                         .value("URGENT"));
+    }
+        @Test
+    void shouldDeleteTicket() throws Exception {
+        mockMvc.perform(delete("/api/tickets/1"))
+                .andExpect(status().isNoContent());
+
+        verify(ticketService).delete(1L);
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenStatusIsInvalid()
+            throws Exception {
+
+        mockMvc.perform(patch("/api/tickets/1/status")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                          "status": "INVALID_STATUS"
+                        }
+                        """))
+                .andExpect(status().isBadRequest());
     }
 }
