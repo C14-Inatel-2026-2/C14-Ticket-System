@@ -108,7 +108,9 @@
     const form = document.getElementById('ticket-form');
     form.addEventListener("submit", async function(event){
         event.preventDefault();
-
+        if (!checkIfFormIsValid()) {
+            return;
+        }
         const ticket = {
             title: document.getElementById('title').value,
             project: document.getElementById('project').value,
@@ -136,6 +138,15 @@
             console.error('Error creating ticket:', error);
         }
     })
+
+    function checkIfFormIsValid() {
+        const title = document.getElementById('title').value.trim();
+        const project = document.getElementById('project').value;
+        const priority = document.getElementById('priority').value;
+        const description = document.getElementById('description').value.trim();
+
+        return title !== '' && project !== '' && priority !== '' && description !== '';
+    }
 
 </script>
 
