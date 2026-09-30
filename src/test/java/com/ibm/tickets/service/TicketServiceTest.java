@@ -137,6 +137,89 @@ class TicketServiceTest {
 
         verify(ticketRepository).findById(99L);
     }
+    
+    @Test
+    void shouldUpdateTicket() {
+        Ticket ticket = createTicket(
+                "Old title",
+                TicketStatus.OPEN);
+
+        TicketRequest request = new TicketRequest(
+                "Updated title",
+                "Updated description",
+                "Updated project",
+                "Mariana",
+                TicketPriority.MEDIUM);
+
+        when(ticketRepository.findById(1L))
+                .thenReturn(Optional.of(ticket));
+
+        when(ticketRepository.saveAndFlush(ticket))
+                .thenReturn(ticket);
+
+        TicketResponse response = ticketService.update(
+                1L,
+                request);
+
+        assertAll(
+                () -> assertEquals(
+                        "Updated title",
+                        response.title()),
+                () -> assertEquals(
+                        "Updated description",
+                        response.description()),
+                () -> assertEquals(
+                        "Updated project",
+                        response.project()),
+                () -> assertEquals(
+                        "Mariana",
+                        response.assignee()),
+                () -> assertEquals(
+                        TicketPriority.MEDIUM,
+                        response.priority()));
+
+        verify(ticketRepository).findById(1L);
+        verify(ticketRepository).saveAndFlush(ticket);
+    }
+
+    @Test
+    void shouldUpdateTicketStatus() {
+        Ticket ticket = createTicket(
+                "Printer problem",
+                TicketStatus.OPEN);
+
+        when(ticketRepository.findById(1L))
+                .thenReturn(Optional.of(ticket));
+
+        when(ticketRepository.saveAndFlush(ticket))
+                .thenReturn(ticket);
+
+        TicketResponse response = ticketService.updateStatus(
+                1L,
+                TicketStatus.CLOSED);
+
+        assertEquals(
+                TicketStatus.CLOSED,
+                response.status());
+
+        verify(ticketRepository).findById(1L);
+        verify(ticketRepository).saveAndFlush(ticket);
+    }
+
+    @Test
+    void shouldDeleteTicket() {
+        Ticket ticket = createTicket(
+                "Printer problem",
+                TicketStatus.OPEN);
+
+        when(ticketRepository.findById(1L))
+                .thenReturn(Optional.of(ticket));
+
+        ticketService.delete(1L);
+
+        verify(ticketRepository).findById(1L);
+        verify(ticketRepository).delete(ticket);
+    }
 
     private Ticket createTicket(
             String title,
