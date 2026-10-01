@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Novo Ticket</title>
+
+    <link rel="stylesheet" th:href="@{/css/new_ticket_style.css}">
+</head>
+
+<body>
+
+<header>
+    <h1>Ticket System</h1>
+</header>
+
+<main>
+
+    <div class="page-header">
+        <div>
+            <h2>Novo Ticket</h2>
+            <p>Preencha as informações para criar um novo ticket.</p>
+        </div>
+    </div>
+
+    <div class="ticket-form-container">
+
+        <form id="ticket-form">
+
+            <div class="form-group">
+                <label for="title">Título</label>
+
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    placeholder="Digite o título do ticket"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="project">Projeto</label>
+
+                <select id="project" name="project" required>
+                    <option value="">Selecione um projeto</option>
+                    <option value="1">Ticket System</option>
+                    <option value="2">Projeto de Teste</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="owner">Responsável</label>
+
+                <input
+                    type="text"
+                    id="owner"
+                    name="owner"
+                    placeholder="Nome do responsável"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="priority">Criticidade</label>
+
+                <select id="priority" name="priority" required>
+                    <option value="">Selecione</option>
+                    <option value="LOW">Baixa</option>
+                    <option value="MEDIUM">Média</option>
+                    <option value="HIGH">Alta</option>
+                    <option value="CRITICAL">Crítica</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Descrição</label>
+
+                <textarea
+                    id="description"
+                    name="description"
+                    rows="7"
+                    placeholder="Descreva o problema ou solicitação..."
+                    required
+                ></textarea>
+            </div>
+
+            <div class="form-actions">
+
+                <a th:href="@{/}" class="cancel-button">
+                    Cancelar
+                </a>
+
+                <button type="submit" class="create-ticket-button">
+                    Criar Ticket
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</main>
+
+<script>
+    const form = document.getElementById('ticket-form');
+    form.addEventListener("submit", async function(event){
+        event.preventDefault();
+        if (!checkIfFormIsValid()) {
+            return;
+        }
+        const ticket = {
+            title: document.getElementById('title').value,
+            project: document.getElementById('project').value,
+            assignee: document.getElementById('owner').value,
+            priority: document.getElementById('priority').value,
+            description: document.getElementById('description').value
+        };
+
+        try{
+
+            const response = await fetch('/api/tickets', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(ticket)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create ticket');
+            }
+
+            window.location.href = '/';
+        } catch (error) {
+            console.error('Error creating ticket:', error);
+        }
+    })
+
+    function checkIfFormIsValid() {
+        const title = document.getElementById('title').value.trim();
+        const project = document.getElementById('project').value;
+        const priority = document.getElementById('priority').value;
+        const description = document.getElementById('description').value.trim();
+
+        return title !== '' && project !== '' && priority !== '' && description !== '';
+    }
+
+</script>
+
+</body>
+</html>
