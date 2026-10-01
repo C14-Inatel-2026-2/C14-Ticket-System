@@ -23,6 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.ibm.tickets.dto.TicketRequest;
 import com.ibm.tickets.dto.TicketResponse;
+import com.ibm.tickets.dto.TicketStatusHistoryResponse;
 import com.ibm.tickets.exception.TicketNotFoundException;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
@@ -282,5 +283,32 @@ class TicketControllerTest {
                         }
                         """))
                 .andExpect(status().isBadRequest());
+    }
+    @Test
+    void shouldListTicketStatusHistory() throws Exception {
+        OffsetDateTime changedAt = OffsetDateTime.parse(
+            "2026-10-01T15:00:00Z");
+
+        TicketStatusHistoryResponse response =
+            new TicketStatusHistoryResponse(
+                    10L,
+                    1L,
+                    TicketStatus.OPEN,
+                    TicketStatus.IN_PROGRESS,
+                    changedAt);
+
+        when(ticketService.findStatusHistory(1L))
+            .thenReturn(List.of(response));
+
+        mockMvc.perform(get("/api/tickets/1/history"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$[0].id").value(10))
+            .andExpect(jsonPath("$[0].ticketId").value(1))
+            .andExpect(jsonPath("$[0].previousStatus")
+                    .value("OPEN"))
+            .andExpect(jsonPath("$[0].newStatus")
+                    .value("IN_PROGRESS"));
+
+        verify(ticketService).findStatusHistory(1L);
     }
 }
