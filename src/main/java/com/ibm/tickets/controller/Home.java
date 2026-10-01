@@ -19,18 +19,9 @@ import com.ibm.tickets.service.TicketService;
 @RequestMapping("/")
 public class Home {
     
-    private final TicketService ticketService;
-    
-    public Home(TicketService ticketService) {
-        this.ticketService = ticketService;
-    }
-    
     @GetMapping
     public String homePage(Model model){
-        List<TicketResponse> tickets = ticketService.findAll(null);
-
-        model.addAttribute("tickets", tickets);
-        
-        return "home";
+        return "login";
     }
+
 }
