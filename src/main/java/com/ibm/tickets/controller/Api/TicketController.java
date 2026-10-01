@@ -1,4 +1,4 @@
-package com.ibm.tickets.controller;
+package com.ibm.tickets.controller.Api;
 
 import java.util.List;
 
