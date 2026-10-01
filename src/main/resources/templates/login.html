@@ -23,8 +23,8 @@
         </p>
 
         <div class="error-message"
-             th:if="${error}"
-             th:text="${error}">
+            th:if="${param.error}">
+            Usuário ou senha inválidos.
         </div>
 
         <form method="post" action="/login">
