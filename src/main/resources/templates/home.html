@@ -154,6 +154,21 @@
         }
     }
 
+    function showSuccessMessage() {
+        const message = sessionStorage.getItem('successMessage');
+
+        if (!message){
+            return;
+        }
+        const successMessage = document.createElement('div');
+        successMessage.className = 'success-message';
+        successMessage.textContent = message;
+
+        document.querySelector('main').prepend(successMessage);
+        sessionStorage.removeItem('successMessage');
+    }
+
+    showSuccessMessage();
     loadTickets();
 </script>
 </body>

@@ -2,6 +2,7 @@ package com.ibm.tickets.controller;
 
 import java.time.OffsetDateTime;
 
+import static org.hamcrest.Matchers.containsString;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.when;
@@ -11,6 +12,7 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -82,6 +84,27 @@ public class TicketWebControllerTest {
         mockMvc.perform(get("/tickets/4").session(session))
         .andExpect(status().isOk())
         .andExpect(view().name("ticket-details"));
+    }
+
+    @Test
+    void shouldShowDeleteButtonOnTicketDetails() throws Exception{
+        TicketResponse ticketResponse = new TicketResponse(
+            4L,
+            "Erro ao realizar login",
+            "Usuario nao consegue realizar login",
+            "Ticket System",
+            "Mariana",
+            TicketStatus.OPEN,
+            TicketPriority.HIGH,
+            OffsetDateTime.now(),
+            OffsetDateTime.now());
+
+    when(ticketService.findById(4L)).thenReturn(ticketResponse);
+
+    mockMvc.perform(get("/tickets/4").session(session))
+            .andExpect(status().isOk())
+            .andExpect(view().name("ticket-details"))
+            .andExpect(content().string(containsString("Excluir")));
     }
 
     @Test

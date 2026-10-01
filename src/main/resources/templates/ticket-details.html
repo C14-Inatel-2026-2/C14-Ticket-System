@@ -37,11 +37,17 @@
             class="new-ticket-button">
             Editar
         </a>
-        </div>
+
+        <button type="button"
+        class="delete-button"
+        th:onclick="'deleteTicket(' + ${ticket.id} + ')'">
+            Excluir
+        </button>
 
         <a th:href="@{/tickets}" class="new-ticket-button">
             Voltar
         </a>
+        </div>
     </div>
 
     <div class="ticket-details-container">
@@ -79,6 +85,34 @@
     </div>
 
 </main>
+<script>
+    async function deleteTicket(ticketId){
+        const confirmed = confirm(
+            "Tem certeza que deseja excluir esse ticket?"
+        );
 
+        if(!confirmed){
+            return;
+        }
+
+        try{
+            const response = await fetch(`/api/tickets/${ticketId}`,{
+                method: 'DELETE'
+            });
+            
+            if (!response.ok){
+                throw new Error('Não foi possível deletar o ticket');
+            }
+            sessionStorage.setItem(
+                'successMessage',
+                'Ticket excluído com sucesso!'
+            );
+
+            window.location.href = '/tickets';
+        } catch(error){
+            console.error('Erro ao tentar deletar ticket: ', error);
+        }
+    }
+</script>
 </body>
 </html>
