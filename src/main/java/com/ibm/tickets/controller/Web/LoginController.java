@@ -20,17 +20,14 @@ public class LoginController {
     @PostMapping("/login")
     public String login(@RequestParam String username, 
                         @RequestParam String password,
-                        Model model,
                         HttpSession session) 
     {
         if (USERNAME.equals(username) && PASSWORD.equals(password)) {
             session.setAttribute("loggedUser", username);
             return "redirect:/tickets";
-        } else {
-            model.addAttribute("error", "Invalid username or password");
-            return "login";
-        }
+        } 
 
+        return "redirect:/?error";
     }
 
     @PostMapping("/logout")
