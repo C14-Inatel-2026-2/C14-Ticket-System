@@ -34,11 +34,18 @@ public class TicketWebController {
         return "home";
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public String showTicketDetails(@PathVariable Long id, Model model){
         TicketResponse ticketResponse = ticketService.findById(id);
         model.addAttribute("ticket", ticketResponse);
         return "ticket-details";
+    }
+
+    @GetMapping("/{id}/edit")
+    public String showEditForm(@PathVariable Long id, Model model){
+        TicketResponse ticketResponse = ticketService.findById(id);
+        model.addAttribute("ticket", ticketResponse);
+        return "ticket-edit";
     }
     
 }

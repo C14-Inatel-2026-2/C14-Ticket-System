@@ -32,6 +32,13 @@
             <p th:text="'Ticket #' + ${ticket.id}"></p>
         </div>
 
+        <div>
+            <a th:href="@{/tickets/{id}/edit(id=${ticket.id})}"
+            class="new-ticket-button">
+            Editar
+        </a>
+        </div>
+
         <a th:href="@{/tickets}" class="new-ticket-button">
             Voltar
         </a>
