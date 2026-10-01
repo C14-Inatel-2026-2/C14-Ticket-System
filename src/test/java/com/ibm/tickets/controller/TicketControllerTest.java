@@ -3,6 +3,7 @@ package com.ibm.tickets.controller;
 import java.time.OffsetDateTime;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -11,6 +12,7 @@ import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -20,7 +22,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 
+import com.ibm.tickets.controller.Api.TicketController;
 import com.ibm.tickets.dto.TicketRequest;
 import com.ibm.tickets.dto.TicketResponse;
 import com.ibm.tickets.exception.TicketNotFoundException;
@@ -38,9 +42,15 @@ class TicketControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
+    private MockHttpSession session;
     @MockitoBean
     private TicketService ticketService;
+
+    @BeforeEach 
+    void setUp(){
+        session = new MockHttpSession();
+        session.setAttribute("loggedUser", "admin");
+    }
 
     @Test
     void shouldCreateTicket() throws Exception {
@@ -62,6 +72,7 @@ class TicketControllerTest {
                 .thenReturn(response);
 
         mockMvc.perform(post("/api/tickets")
+                .session(session)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
@@ -89,6 +100,7 @@ class TicketControllerTest {
     @Test
     void shouldReturnBadRequestWhenTitleIsBlank() throws Exception {
         mockMvc.perform(post("/api/tickets")
+                .session(session)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
@@ -129,7 +141,8 @@ class TicketControllerTest {
         when(ticketService.findAll(null))
                 .thenReturn(List.of(response));
 
-        mockMvc.perform(get("/api/tickets"))
+        mockMvc.perform(get("/api/tickets")
+                .session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].title")
@@ -162,6 +175,7 @@ class TicketControllerTest {
                 .thenReturn(response);
 
         mockMvc.perform(patch("/api/tickets/1/status")
+                .session(session)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
@@ -180,7 +194,8 @@ class TicketControllerTest {
         when(ticketService.findById(99L))
                 .thenThrow(new TicketNotFoundException(99L));
 
-        mockMvc.perform(get("/api/tickets/99"))
+        mockMvc.perform(get("/api/tickets/99")
+                .session(session))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.title")
                         .value("Ticket not found"))
@@ -206,7 +221,8 @@ class TicketControllerTest {
         when(ticketService.findById(1L))
                 .thenReturn(response);
 
-        mockMvc.perform(get("/api/tickets/1"))
+        mockMvc.perform(get("/api/tickets/1")
+                .session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.title")
@@ -243,6 +259,7 @@ class TicketControllerTest {
                 .thenReturn(response);
 
         mockMvc.perform(put("/api/tickets/1")
+                .session(session)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
@@ -262,9 +279,10 @@ class TicketControllerTest {
                 .andExpect(jsonPath("$.priority")
                         .value("URGENT"));
     }
-        @Test
+   @Test
     void shouldDeleteTicket() throws Exception {
-        mockMvc.perform(delete("/api/tickets/1"))
+        mockMvc.perform(delete("/api/tickets/1")
+                .session(session))
                 .andExpect(status().isNoContent());
 
         verify(ticketService).delete(1L);
@@ -275,6 +293,7 @@ class TicketControllerTest {
             throws Exception {
 
         mockMvc.perform(patch("/api/tickets/1/status")
+                .session(session)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
@@ -282,5 +301,12 @@ class TicketControllerTest {
                         }
                         """))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test 
+    void shouldRedirectToLoginPageWhenNoSessionIsMade() throws Exception{
+        mockMvc.perform(get("/api/tickets"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/"));
     }
 }
