@@ -1,7 +1,6 @@
-package com.ibm.tickets.controller;
+package com.ibm.tickets.controller.Web;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -12,9 +11,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping("/tickets")
 public class TicketWebController {
-    
+
     @GetMapping("/new")
-    public String showCreateForm(Model model) {
+    public String showCreateForm() {
         return "new-ticket";
+    }
+
+    @GetMapping
+    public String showTicketList(){
+        return "home";
     }
 }
