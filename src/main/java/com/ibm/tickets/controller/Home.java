@@ -1,14 +1,9 @@
 package com.ibm.tickets.controller;
 
-import java.util.List;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import com.ibm.tickets.dto.TicketResponse;
-import com.ibm.tickets.service.TicketService;
 
 /**
  * @author Rodrigo Fraga da Costa

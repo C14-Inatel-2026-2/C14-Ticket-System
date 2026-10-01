@@ -1,13 +1,8 @@
 package com.ibm.tickets.controller.Web;
 
-import java.util.List;
-
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import com.ibm.tickets.dto.TicketResponse;
 
 /**
  * @author Rodrigo Fraga da Costa
@@ -18,7 +13,7 @@ import com.ibm.tickets.dto.TicketResponse;
 public class TicketWebController {
 
     @GetMapping("/new")
-    public String showCreateForm(Model model) {
+    public String showCreateForm() {
         return "new-ticket";
     }
 
