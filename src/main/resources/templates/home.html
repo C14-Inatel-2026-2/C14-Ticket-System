@@ -15,14 +15,29 @@
         <h1>Ticket System</h1>
     </header>
 
+    <header>
+    <div class="header-content">
+
+        <h1>Ticket System</h1>
+
+        <form th:action="@{/logout}" method="post">
+            <button
+                type="submit"
+                class="logout-button">
+                Sair
+            </button>
+        </form>
+
+    </div>
+    </header>
     <main>
 
         <div class="page-header">
             <h2>Tickets</h2>
 
-            <button class="new-ticket-button">
+            <a class="new-ticket-button" th:href="@{/tickets/new}">
                 Novo Ticket
-            </button>
+            </a>
         </div>
 
         <div class="ticket-container">
@@ -39,71 +54,7 @@
                     </tr>
                 </thead>
 
-                <tbody>
-                    <tr th:each="ticket : ${tickets}">
-                        <td th:text="${'#' + #numbers.formatInteger(ticket.id, 3)}">
-                            #001
-                        </td>
-                        <td th:text="${ticket.title}">
-                            Nome do ticket
-                        </td>
-                        <td th:text="${ticket.project}">
-                            Projeto
-                        </td>
-                        <td th:text="${ticket.assignee}">
-                            Responsável
-                        </td>
-                        <td>
-                            <div th:switch="${ticket.status}">
-                                <span
-                                    th:case="${T(com.ibm.tickets.model.TicketStatus).OPEN}"
-                                    class="status open">
-                                    Aberto
-                                </span>
-                                <span
-                                    th:case="${T(com.ibm.tickets.model.TicketStatus).IN_PROGRESS}"
-                                    class="status progress">
-                                    Em andamento
-                                </span>
-                                <span
-                                    th:case="${T(com.ibm.tickets.model.TicketStatus).RESOLVED}"
-                                    class="status resolved">
-                                    Resolvido
-                                </span>
-                                <span
-                                    th:case="${T(com.ibm.tickets.model.TicketStatus).CLOSED}"
-                                    class="status closed">
-                                    Fechado
-                                </span>
-                            </div>
-                        </td>
-                        <td>
-                            <div th:switch="${ticket.priority}">
-                                <span
-                                    th:case="${T(com.ibm.tickets.model.TicketPriority).LOW}">
-                                    Baixa
-                                </span>
-                                <span
-                                    th:case="${T(com.ibm.tickets.model.TicketPriority).MEDIUM}">
-                                    Média
-                                </span>
-                                <span
-                                    th:case="${T(com.ibm.tickets.model.TicketPriority).HIGH}">
-                                    Alta
-                                </span>
-                                <span
-                                    th:case="${T(com.ibm.tickets.model.TicketPriority).URGENT}">
-                                    Urgente
-                                </span>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <tr th:if="${#lists.isEmpty(tickets)}">
-                        <td colspan="6" class="empty-message">
-                            Nenhum ticket encontrado.
-                        </td>
-                    </tr>
+                <tbody id="ticket-list">
                 </tbody>
             </table>
 
@@ -111,5 +62,103 @@
 
     </main>
 
+    <script>
+    async function loadTickets() {
+
+        try {
+            const response = await fetch("/api/tickets");
+
+            if (!response.ok) {
+                throw new Error(
+                    "Erro ao buscar tickets. Status: " + response.status
+                );
+            }
+
+            const tickets = await response.json();
+
+            renderTickets(tickets);
+
+        } catch (error) {
+            console.error("Erro ao carregar tickets:", error);
+        }
+    }
+
+    function renderTickets(tickets) {
+
+        const ticketList =
+            document.getElementById("ticket-list");
+
+        ticketList.innerHTML = "";
+
+        if (tickets.length === 0) {
+
+            ticketList.innerHTML = `
+                <tr>
+                    <td colspan="6" class="empty-message">
+                        Nenhum ticket encontrado.
+                    </td>
+                </tr>
+            `;
+
+            return;
+        }
+
+        tickets.forEach(ticket => {
+
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+                <td>${ticket.id}</td>
+
+                <td>
+                    <a
+                        href="/tickets/${ticket.id}"
+                        class="ticket-link">
+                        ${ticket.title}
+                    </a>
+                </td>
+
+                <td>${ticket.project}</td>
+
+                <td>${ticket.owner}</td>
+
+                <td>
+                    ${ticket.status}
+                </td>
+
+                <td>
+                    <span class="priority ${getPriorityClass(ticket.priority)}">
+                        ${ticket.priority}
+                    </span>
+                </td>
+            `;
+
+            ticketList.appendChild(row);
+        });
+    }
+
+    function getPriorityClass(priority) {
+
+        switch (priority) {
+
+            case "LOW":
+                return "priority-low";
+
+            case "MEDIUM":
+                return "priority-medium";
+
+            case "HIGH":
+                return "priority-high";
+
+            case "CRITICAL":
+                return "priority-critical";
+
+            default:
+                return "";
+        }
+    }
+
+    loadTickets();
+</script>
 </body>
 </html>
