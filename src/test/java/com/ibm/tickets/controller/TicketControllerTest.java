@@ -3,6 +3,7 @@ package com.ibm.tickets.controller;
 import java.time.OffsetDateTime;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,12 +22,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.ibm.tickets.controller.Api.TicketController;
 import com.ibm.tickets.dto.TicketRequest;
 import com.ibm.tickets.dto.TicketResponse;
+import com.ibm.tickets.dto.TicketStatusHistoryResponse;
 import com.ibm.tickets.exception.TicketNotFoundException;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
@@ -42,14 +44,18 @@ class TicketControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
     private MockHttpSession session;
+
     @MockitoBean
     private TicketService ticketService;
 
-    @BeforeEach 
-    void setUp(){
+    @BeforeEach
+    void setUp() {
         session = new MockHttpSession();
         session.setAttribute("loggedUser", "admin");
+
+        assertNotNull(session);
     }
 
     @Test
@@ -187,7 +193,8 @@ class TicketControllerTest {
                 .andExpect(jsonPath("$.status")
                         .value("IN_PROGRESS"));
     }
-        @Test
+
+    @Test
     void shouldReturnNotFoundWhenTicketDoesNotExist()
             throws Exception {
 
@@ -202,7 +209,8 @@ class TicketControllerTest {
                 .andExpect(jsonPath("$.status")
                         .value(404));
     }
-        @Test
+
+    @Test
     void shouldFindTicketById() throws Exception {
         OffsetDateTime now = OffsetDateTime.parse(
                 "2026-09-18T15:00:00Z");
@@ -279,7 +287,8 @@ class TicketControllerTest {
                 .andExpect(jsonPath("$.priority")
                         .value("URGENT"));
     }
-   @Test
+
+    @Test
     void shouldDeleteTicket() throws Exception {
         mockMvc.perform(delete("/api/tickets/1")
                 .session(session))
@@ -303,8 +312,39 @@ class TicketControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @Test 
-    void shouldRedirectToLoginPageWhenNoSessionIsMade() throws Exception{
+    @Test
+    void shouldListTicketStatusHistory() throws Exception {
+        OffsetDateTime changedAt = OffsetDateTime.parse(
+                "2026-10-01T15:00:00Z");
+
+        TicketStatusHistoryResponse response =
+                new TicketStatusHistoryResponse(
+                        10L,
+                        1L,
+                        TicketStatus.OPEN,
+                        TicketStatus.IN_PROGRESS,
+                        changedAt);
+
+        when(ticketService.findStatusHistory(1L))
+                .thenReturn(List.of(response));
+
+        mockMvc.perform(get("/api/tickets/1/history")
+                .session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(10))
+                .andExpect(jsonPath("$[0].ticketId").value(1))
+                .andExpect(jsonPath("$[0].previousStatus")
+                        .value("OPEN"))
+                .andExpect(jsonPath("$[0].newStatus")
+                        .value("IN_PROGRESS"));
+
+        verify(ticketService).findStatusHistory(1L);
+    }
+
+    @Test
+    void shouldRedirectToLoginPageWhenNoSessionIsMade()
+            throws Exception {
+
         mockMvc.perform(get("/api/tickets"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"));

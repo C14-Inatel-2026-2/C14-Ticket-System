@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ibm.tickets.dto.TicketRequest;
 import com.ibm.tickets.dto.TicketResponse;
+import com.ibm.tickets.dto.TicketStatusHistoryResponse;
 import com.ibm.tickets.dto.TicketStatusRequest;
 import com.ibm.tickets.model.TicketStatus;
 import com.ibm.tickets.service.TicketService;
@@ -56,6 +57,11 @@ public class TicketController {
         return ticketService.findById(id);
     }
 
+    @GetMapping("/{id}/history")
+    public List<TicketStatusHistoryResponse> findStatusHistory(@PathVariable Long id) {
+    return ticketService.findStatusHistory(id);
+    }
+
     @PutMapping("/{id}")
     public TicketResponse update(
             @PathVariable Long id,
@@ -75,4 +81,6 @@ public class TicketController {
     public void delete(@PathVariable Long id) {
         ticketService.delete(id);
     }
+
+    
 }
