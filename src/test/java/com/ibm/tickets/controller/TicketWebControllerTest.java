@@ -1,20 +1,18 @@
 package com.ibm.tickets.controller;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import com.ibm.tickets.controller.Web.TicketWebController;
+import com.ibm.tickets.service.TicketService;
 
 /**
  * @author Rodrigo Fraga da Costa
@@ -25,6 +23,9 @@ public class TicketWebControllerTest {
     
     @Autowired 
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private TicketService ticketService;
 
     private MockHttpSession session;
 
@@ -38,6 +39,7 @@ public class TicketWebControllerTest {
     void shouldOpenNewTicketPage() throws Exception{
         mockMvc.perform(get("/tickets/new")
                 .session(session))
+                .andExpect(status().isOk())
                 .andExpect(view().name("new-ticket"));
     }
 
@@ -49,12 +51,9 @@ public class TicketWebControllerTest {
     }
 
     @Test
-    void shouldReturnTicketHomePage(){
-        assertEquals("home", new TicketWebController().showTicketList());
-    }
-
-    @Test 
-    void shouldReturnNewTicketPage(){
-        assertEquals("new-ticket", new TicketWebController().showCreateForm());
+    void shouldReturnTicketHomePage() throws Exception{
+        mockMvc.perform(get("/tickets").session(session))
+        .andExpect(status().isOk())
+        .andExpect(view().name("home"));
     }
 }

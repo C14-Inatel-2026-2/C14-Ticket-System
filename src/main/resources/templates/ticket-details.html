@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Detalhes do Ticket</title>
+
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+</head>
+
+<body>
+
+<header>
+    <div class="header-content">
+        <h1>Ticket System</h1>
+
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="logout-button">
+                Sair
+            </button>
+        </form>
+    </div>
+</header>
+
+<main>
+
+    <div class="page-header">
+        <div>
+            <h2>Detalhes do Ticket</h2>
+            <p th:text="'Ticket #' + ${ticket.id}"></p>
+        </div>
+
+        <a th:href="@{/tickets}" class="new-ticket-button">
+            Voltar
+        </a>
+    </div>
+
+    <div class="ticket-details-container">
+
+        <div class="ticket-detail">
+            <strong>Título</strong>
+            <p th:text="${ticket.title}"></p>
+        </div>
+
+        <div class="ticket-detail">
+            <strong>Projeto</strong>
+            <p th:text="${ticket.project}"></p>
+        </div>
+
+        <div class="ticket-detail">
+            <strong>Responsável</strong>
+            <p th:text="${ticket.assignee}"></p>
+        </div>
+
+        <div class="ticket-detail">
+            <strong>Status</strong>
+            <p th:text="${ticket.status}"></p>
+        </div>
+
+        <div class="ticket-detail">
+            <strong>Prioridade</strong>
+            <p th:text="${ticket.priority}"></p>
+        </div>
+
+        <div class="ticket-detail">
+            <strong>Descrição</strong>
+            <p th:text="${ticket.description}"></p>
+        </div>
+
+    </div>
+
+</main>
+
+</body>
+</html>
