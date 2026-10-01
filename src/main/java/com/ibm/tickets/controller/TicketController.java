@@ -58,9 +58,8 @@ public class TicketController {
     }
 
     @GetMapping("/{id}/history")
-    public List<TicketStatusHistoryResponse> findStatusHistory(
-            @PathVariable Long id) {
-        return ticketService.findStatusHistory(id);
+    public List<TicketStatusHistoryResponse> findStatusHistory(@PathVariable Long id) {
+    return ticketService.findStatusHistory(id);
     }
 
     @PutMapping("/{id}")
@@ -82,4 +81,6 @@ public class TicketController {
     public void delete(@PathVariable Long id) {
         ticketService.delete(id);
     }
+
+    
 }
