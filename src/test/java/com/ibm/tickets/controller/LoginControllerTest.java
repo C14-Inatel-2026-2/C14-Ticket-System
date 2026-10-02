@@ -1,7 +1,6 @@
 package com.ibm.tickets.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
@@ -34,5 +33,23 @@ public class LoginControllerTest {
         LoginController loginController = new LoginController();
         String result =loginController.login("wrongUser", "wrongPass", session);
         assertEquals("redirect:/?error", result);
+    }
+
+    @Test
+    void shouldRedirectToLoginPageWhenUsernameIsEmpty(){
+        LoginController loginController = new LoginController();
+
+        String result = loginController.login("", "admin", null);
+
+        assertEquals("redirect:/?error=username", result);
+    }
+
+    @Test
+    void shouldRedirectToLoginPageWhenPasswordIsEmpty(){
+        LoginController loginController = new LoginController();
+
+        String result = loginController.login("admin", "", null);
+
+        assertEquals("redirect:/?error=password", result);
     }
 }
