@@ -1,7 +1,6 @@
 package com.ibm.tickets.controller.Web;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -20,8 +19,22 @@ public class LoginController {
     @PostMapping("/login")
     public String login(@RequestParam String username, 
                         @RequestParam String password,
-                        HttpSession session) 
-    {
+                        HttpSession session) {
+
+        boolean usernameEmpty = username == null || username.isBlank();
+        boolean passwordEmpty = password == null || password.isBlank();
+
+        if (usernameEmpty && passwordEmpty) {
+            return "redirect:/?error=username&error=password";
+        }
+
+        if (usernameEmpty) {
+            return "redirect:/?error=username";
+        }
+
+        if (passwordEmpty) {
+            return "redirect:/?error=password";
+        }
         if (USERNAME.equals(username) && PASSWORD.equals(password)) {
             session.setAttribute("loggedUser", username);
             return "redirect:/tickets";

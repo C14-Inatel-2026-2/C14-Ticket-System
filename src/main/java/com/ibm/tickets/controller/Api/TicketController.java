@@ -19,6 +19,7 @@ import com.ibm.tickets.dto.TicketRequest;
 import com.ibm.tickets.dto.TicketResponse;
 import com.ibm.tickets.dto.TicketStatusHistoryResponse;
 import com.ibm.tickets.dto.TicketStatusRequest;
+import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
 import com.ibm.tickets.service.TicketService;
 
@@ -48,8 +49,13 @@ public class TicketController {
 
     @GetMapping
     public List<TicketResponse> findAll(
-            @RequestParam(required = false) TicketStatus status) {
-        return ticketService.findAll(status);
+            @RequestParam(required = false) TicketStatus status,
+            @RequestParam(required = false) TicketPriority priority) {
+
+        if (priority == null){
+            return ticketService.findAll(status);
+        }
+        return ticketService.findAll(status, priority);
     }
 
     @GetMapping("/{id}")

@@ -36,6 +36,29 @@
             </a>
         </div>
 
+        <div class="filter-container">
+            <label for="status-filter">Filtrar por status</label>
+
+            <select id="status-filter">
+                <option value="">Todos</option>
+                <option value="OPEN">Aberto</option>
+                <option value="IN_PROGRESS">Em andamento</option>
+                <option value="RESOLVED">Resolvido</option>
+                <option value="CLOSED">Encerrado</option>
+            </select>
+        </div>
+
+        <div class="filter-container">
+            <label for="priority-filter">Filtrar por prioridade</label>
+
+            <select id="priority-filter">
+                <option value="">Todas</option>
+                <option value="LOW">Baixa</option>
+                <option value="MEDIUM">Média</option>
+                <option value="HIGH">Alta</option>
+                <option value="URGENT">Crítica</option>
+            </select>
+        </div>
         <div class="ticket-container">
 
             <table>
@@ -59,10 +82,23 @@
     </main>
 
     <script>
-    async function loadTickets() {
+    async function loadTickets(status = "", priority ="") {
 
         try {
-            const response = await fetch("/api/tickets");
+            let url = "/api/tickets";
+            const params = new URLSearchParams();
+
+            if (status) {
+                params.append("status", status);
+            }
+            if (priority) {
+                params.append("priority", priority);
+            }
+            if (params.toString()) {
+                url += "?" + params.toString();
+            }
+
+            const response = await fetch(url);
 
             if (!response.ok) {
                 throw new Error(
@@ -167,6 +203,22 @@
         document.querySelector('main').prepend(successMessage);
         sessionStorage.removeItem('successMessage');
     }
+
+    const statusFilter =
+        document.getElementById("status-filter");
+
+    const priorityFilter =
+        document.getElementById("priority-filter");
+
+    function applyFilters() {
+        loadTickets(
+            statusFilter.value,
+            priorityFilter.value
+        );
+    }
+
+    statusFilter.addEventListener("change", applyFilters);
+    priorityFilter.addEventListener("change", applyFilters);
 
     showSuccessMessage();
     loadTickets();
