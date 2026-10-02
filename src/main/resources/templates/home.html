@@ -12,10 +12,6 @@
 <body>
 
     <header>
-        <h1>Ticket System</h1>
-    </header>
-
-    <header>
     <div class="header-content">
 
         <h1>Ticket System</h1>
@@ -120,7 +116,7 @@
 
                 <td>${ticket.project}</td>
 
-                <td>${ticket.owner}</td>
+                <td>${ticket.assignee}</td>
 
                 <td>
                     ${ticket.status}
@@ -150,7 +146,7 @@
             case "HIGH":
                 return "priority-high";
 
-            case "CRITICAL":
+            case "URGENT":
                 return "priority-critical";
 
             default:
@@ -158,6 +154,21 @@
         }
     }
 
+    function showSuccessMessage() {
+        const message = sessionStorage.getItem('successMessage');
+
+        if (!message){
+            return;
+        }
+        const successMessage = document.createElement('div');
+        successMessage.className = 'success-message';
+        successMessage.textContent = message;
+
+        document.querySelector('main').prepend(successMessage);
+        sessionStorage.removeItem('successMessage');
+    }
+
+    showSuccessMessage();
     loadTickets();
 </script>
 </body>
