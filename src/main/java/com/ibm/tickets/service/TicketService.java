@@ -10,6 +10,7 @@ import com.ibm.tickets.dto.TicketResponse;
 import com.ibm.tickets.dto.TicketStatusHistoryResponse;
 import com.ibm.tickets.exception.TicketNotFoundException;
 import com.ibm.tickets.model.Ticket;
+import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
 import com.ibm.tickets.model.TicketStatusHistory;
 import com.ibm.tickets.repository.TicketRepository;
@@ -49,13 +50,23 @@ public class TicketService {
     }
 
     public List<TicketResponse> findAll(TicketStatus status) {
+        return findAll(status, null);
+    }
+
+    public List<TicketResponse> findAll(TicketStatus status, TicketPriority priority) {
         List<Ticket> tickets;
 
-        if (status == null) {
+        if (status == null && priority == null) {
             tickets = ticketRepository.findAllByOrderByCreatedAtDesc();
-        } else {
+        } else if (status != null && priority == null) {
             tickets = ticketRepository
                     .findAllByStatusOrderByCreatedAtDesc(status);
+        } else if (status == null) {
+            tickets = ticketRepository
+                    .findAllByPriorityOrderByCreatedAtDesc(priority);
+        } else {
+            tickets = ticketRepository
+                    .findAllByStatusAndPriorityOrderByCreatedAtDesc(status, priority);
         }
 
         return tickets.stream()
