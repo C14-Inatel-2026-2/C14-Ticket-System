@@ -26,12 +26,12 @@
 
     <!-- Informações do usuário -->
     <section class="profile-header card">
-        <div class="avatar">R</div>
+        <div class="avatar" id="user-avatar">A</div>
 
         <div class="profile-info">
-            <h2>Administrador</h2>
-            <p>admin@example.com</p>
-            <span class="role">Administrador</span>
+            <h2 id="user-name">Carregando...</h2>
+            <p id="user-email">-</p>
+            <span class="role" id="user-role">-</span>
         </div>
     </section>
 
@@ -39,17 +39,17 @@
     <section class="stats-container">
 
         <div class="stat-card card">
-            <h3>8</h3>
+            <h3 id="assigned-count">-</h3>
             <p>Tickets Atribuídos</p>
         </div>
 
         <div class="stat-card card">
-            <h3>3</h3>
+            <h3 id="project-count">-</h3>
             <p>Projetos</p>
         </div>
 
         <div class="stat-card card">
-            <h3>12</h3>
+            <h3 id="completed-count">-</h3>
             <p>Tickets Concluídos</p>
         </div>
 
@@ -58,12 +58,7 @@
     <!-- Projetos -->
     <section class="projects card">
         <h3>Meus Projetos</h3>
-
-        <ul>
-            <li>C14 Ticket System</li>
-            <li>Projeto X</li>
-            <li>Portal Interno</li>
-        </ul>
+        <ul id="project-list"></ul>
     </section>
 
     <!-- Calendário de atividades -->
@@ -105,27 +100,6 @@
         if (count <= 3) return 2;
         if (count <= 6) return 3;
         return 4;
-    }
-
-    function generateActivityData() {
-        const activities = {};
-
-        const today = new Date();
-        today.setHours(12, 0, 0, 0);
-
-        for (let i = 0; i < 365; i++) {
-            const date = new Date(today);
-            date.setDate(today.getDate() - i);
-
-            const key = formatDate(date);
-
-            // Dados fictícios para demonstração.
-            activities[key] = Math.random() < 0.45
-                ? 0
-                : Math.floor(Math.random() * 9);
-        }
-
-        return activities;
     }
 
     function formatDate(date) {
@@ -176,8 +150,76 @@
             `${total} atividades no último ano`;
     }
 
-    const activities = generateActivityData();
-    renderCalendar(activities);
+
+    async function fetchJson(url) {
+        const response = await fetch(url);
+
+        if (response.status === 401) {
+            window.location.href = "/";
+            throw new Error("Usuário não autenticado");
+        }
+
+        if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+        }
+
+        return response.json();
+    }
+
+    async function loadProfile() {
+        try {
+            const user = await fetchJson("/api/users/me");
+
+            document.getElementById("user-name").textContent = user.name;
+            document.getElementById("user-email").textContent = user.email;
+            document.getElementById("user-role").textContent = user.role;
+
+            document.getElementById("user-avatar").textContent =
+                user.name.charAt(0).toUpperCase();
+
+            document.getElementById("assigned-count").textContent =
+                user.assignedTickets;
+
+            document.getElementById("completed-count").textContent =
+                user.completedTickets;
+
+            document.getElementById("project-count").textContent =
+                user.projects.length;
+
+            const projectList = document.getElementById("project-list");
+            projectList.replaceChildren();
+
+            user.projects.forEach(project => {
+                const item = document.createElement("li");
+                item.textContent = project;
+                projectList.appendChild(item);
+            });
+
+        } catch (error) {
+            console.error("Erro ao carregar perfil:", error);
+        }
+    }
+
+    async function loadActivity() {
+        try {
+            const data = await fetchJson("/api/users/me/activity");
+
+            const activities = {};
+
+            data.forEach(activity => {
+                activities[activity.date] = activity.count;
+            });
+
+            renderCalendar(activities);
+
+        } catch (error) {
+            console.error("Erro ao carregar atividades:", error);
+        }
+    }
+
+    loadProfile();
+    loadActivity();
+
 
 </script>
 </body>
