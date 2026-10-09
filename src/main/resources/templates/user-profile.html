@@ -1,0 +1,226 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Meu Perfil - Ticket System</title>
+
+    <link rel="stylesheet" th:href="@{/css/user-profile.css}">
+</head>
+
+<body>
+
+<header>
+    <nav class="navbar">
+        <h1>Ticket System</h1>
+
+        <a th:href="@{/tickets}" class="back-link">
+            Voltar aos Tickets
+        </a>
+    </nav>
+</header>
+
+<main>
+
+    <!-- Informações do usuário -->
+    <section class="profile-header card">
+        <div class="avatar" id="user-avatar">A</div>
+
+        <div class="profile-info">
+            <h2 id="user-name">Carregando...</h2>
+            <p id="user-email">-</p>
+            <span class="role" id="user-role">-</span>
+        </div>
+    </section>
+
+    <!-- Estatísticas -->
+    <section class="stats-container">
+
+        <div class="stat-card card">
+            <h3 id="assigned-count">-</h3>
+            <p>Tickets Atribuídos</p>
+        </div>
+
+        <div class="stat-card card">
+            <h3 id="project-count">-</h3>
+            <p>Projetos</p>
+        </div>
+
+        <div class="stat-card card">
+            <h3 id="completed-count">-</h3>
+            <p>Tickets Concluídos</p>
+        </div>
+
+    </section>
+
+    <!-- Projetos -->
+    <section class="projects card">
+        <h3>Meus Projetos</h3>
+        <ul id="project-list"></ul>
+    </section>
+
+    <!-- Calendário de atividades -->
+    <section class="activity card">
+    <h3>Atividades</h3>
+
+    <p class="section-description">
+        Histórico de contribuições nos últimos 12 meses.
+    </p>
+
+    <div class="activity-container">
+        <div id="activity-calendar" class="activity-calendar"></div>
+    </div>
+
+    <div class="activity-footer">
+        <p id="activity-total">0 atividades no último ano</p>
+
+        <div class="activity-legend">
+            <span>Menos</span>
+            <div class="activity-day level-0"></div>
+            <div class="activity-day level-1"></div>
+            <div class="activity-day level-2"></div>
+            <div class="activity-day level-3"></div>
+            <div class="activity-day level-4"></div>
+            <span>Mais</span>
+        </div>
+    </div>
+</section>
+
+</main>
+<script>
+
+    const calendar = document.getElementById("activity-calendar");
+    const totalElement = document.getElementById("activity-total");
+
+    function getActivityLevel(count) {
+        if (count === 0) return 0;
+        if (count === 1) return 1;
+        if (count <= 3) return 2;
+        if (count <= 6) return 3;
+        return 4;
+    }
+
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    }
+
+    function renderCalendar(activities) {
+        calendar.innerHTML = "";
+
+        const today = new Date();
+        today.setHours(12, 0, 0, 0);
+
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - 364);
+
+        // Alinha o início do calendário ao domingo.
+        startDate.setDate(startDate.getDate() - startDate.getDay());
+
+        let total = 0;
+
+        for (
+            let date = new Date(startDate);
+            date <= today;
+            date.setDate(date.getDate() + 1)
+        ) {
+            const key = formatDate(date);
+            const count = activities[key] || 0;
+
+            const day = document.createElement("div");
+
+            day.classList.add(
+                "activity-day",
+                `level-${getActivityLevel(count)}`
+            );
+
+            day.title = `${key}: ${count} atividades`;
+
+            calendar.appendChild(day);
+
+            total += count;
+        }
+
+        totalElement.textContent =
+            `${total} atividades no último ano`;
+    }
+
+
+    async function fetchJson(url) {
+        const response = await fetch(url);
+
+        if (response.status === 401) {
+            window.location.href = "/";
+            throw new Error("Usuário não autenticado");
+        }
+
+        if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+        }
+
+        return response.json();
+    }
+
+    async function loadProfile() {
+        try {
+            const user = await fetchJson("/api/users/me");
+
+            document.getElementById("user-name").textContent = user.name;
+            document.getElementById("user-email").textContent = user.email;
+            document.getElementById("user-role").textContent = user.role;
+
+            document.getElementById("user-avatar").textContent =
+                user.name.charAt(0).toUpperCase();
+
+            document.getElementById("assigned-count").textContent =
+                user.assignedTickets;
+
+            document.getElementById("completed-count").textContent =
+                user.completedTickets;
+
+            document.getElementById("project-count").textContent =
+                user.projects.length;
+
+            const projectList = document.getElementById("project-list");
+            projectList.replaceChildren();
+
+            user.projects.forEach(project => {
+                const item = document.createElement("li");
+                item.textContent = project;
+                projectList.appendChild(item);
+            });
+
+        } catch (error) {
+            console.error("Erro ao carregar perfil:", error);
+        }
+    }
+
+    async function loadActivity() {
+        try {
+            const data = await fetchJson("/api/users/me/activity");
+
+            const activities = {};
+
+            data.forEach(activity => {
+                activities[activity.date] = activity.count;
+            });
+
+            renderCalendar(activities);
+
+        } catch (error) {
+            console.error("Erro ao carregar atividades:", error);
+        }
+    }
+
+    loadProfile();
+    loadActivity();
+
+
+</script>
+</body>
+</html>

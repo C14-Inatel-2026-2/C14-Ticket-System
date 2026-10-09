@@ -342,11 +342,8 @@ class TicketControllerTest {
     }
 
     @Test
-    void shouldRedirectToLoginPageWhenNoSessionIsMade()
-            throws Exception {
-
+    void shouldReturnUnauthorizedWhenAccessingTicketsWithoutSession() throws Exception {
         mockMvc.perform(get("/api/tickets"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/"));
+                .andExpect(status().isUnauthorized());
     }
 }
