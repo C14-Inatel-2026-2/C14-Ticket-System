@@ -1,0 +1,85 @@
+
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Meu Perfil - Ticket System</title>
+
+    <link rel="stylesheet" th:href="@{/css/user-profile.css}">
+</head>
+
+<body>
+
+<header>
+    <nav class="navbar">
+        <h1>Ticket System</h1>
+
+        <a th:href="@{/tickets}" class="back-link">
+            Voltar aos Tickets
+        </a>
+    </nav>
+</header>
+
+<main>
+
+    <!-- Informações do usuário -->
+    <section class="profile-header card">
+        <div class="avatar">R</div>
+
+        <div class="profile-info">
+            <h2>Rodrigo Costa</h2>
+            <p>rodrigo@example.com</p>
+            <span class="role">Desenvolvedor</span>
+        </div>
+    </section>
+
+    <!-- Estatísticas -->
+    <section class="stats-container">
+
+        <div class="stat-card card">
+            <h3>8</h3>
+            <p>Tickets Atribuídos</p>
+        </div>
+
+        <div class="stat-card card">
+            <h3>3</h3>
+            <p>Projetos</p>
+        </div>
+
+        <div class="stat-card card">
+            <h3>12</h3>
+            <p>Tickets Concluídos</p>
+        </div>
+
+    </section>
+
+    <!-- Projetos -->
+    <section class="projects card">
+        <h3>Meus Projetos</h3>
+
+        <ul>
+            <li>C14 Ticket System</li>
+            <li>OpenLift</li>
+            <li>Portal Interno</li>
+        </ul>
+    </section>
+
+    <!-- Calendário de atividades -->
+    <section class="activity card">
+        <h3>Atividades</h3>
+
+        <p class="section-description">
+            Histórico de contribuições nos últimos 12 meses.
+        </p>
+
+        <div class="activity-placeholder">
+            O calendário de atividades será integrado posteriormente.
+        </div>
+    </section>
+
+</main>
+
+</body>
+</html>
