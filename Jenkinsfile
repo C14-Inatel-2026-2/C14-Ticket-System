@@ -55,6 +55,11 @@ pipeline {
                 sh './mvnw package -DskipTests'
             }
         }
+        stage ('Deploy') {
+            steps {
+                sh 'docker compose up -d --build --no-deps app'
+            }
+        }
 
     }
 
