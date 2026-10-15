@@ -159,18 +159,49 @@
                 <td>${ticket.assignee}</td>
 
                 <td>
-                    ${ticket.status}
+                    <span class="status ${getStatusClass(ticket.status)}">
+                        ${getStatusLabel(ticket.status)}
+                    </span>
                 </td>
 
                 <td>
                     <span class="priority ${getPriorityClass(ticket.priority)}">
-                        ${ticket.priority}
+                        ${getPriorityLabel(ticket.priority)}
                     </span>
                 </td>
             `;
 
             ticketList.appendChild(row);
         });
+    }
+    function getStatusClass(status) {
+        switch (status) {
+            case "OPEN":
+                return "open";
+            case "IN_PROGRESS":
+                return "progress";
+            case "RESOLVED":
+                return "resolved";
+            case "CLOSED":
+                return "closed";
+            default:
+                return "";
+        }
+    }
+
+    function getStatusLabel(status) {
+        switch (status) {
+            case "OPEN":
+                return "Aberto";
+            case "IN_PROGRESS":
+                return "Em andamento";
+            case "RESOLVED":
+                return "Resolvido";
+            case "CLOSED":
+                return "Encerrado";
+            default:
+                return status ?? "Não informado";
+        }
     }
 
     function getPriorityClass(priority) {
@@ -191,6 +222,21 @@
 
             default:
                 return "";
+        }
+    }
+
+    function getPriorityLabel(priority) {
+        switch (priority) {
+            case "LOW":
+                return "Baixa";
+            case "MEDIUM":
+                return "Média";
+            case "HIGH":
+                return "Alta";
+            case "URGENT":
+                return "Crítica";
+            default:
+                return priority ?? "Não informada";
         }
     }
 

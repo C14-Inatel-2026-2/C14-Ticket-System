@@ -8,6 +8,7 @@
     <title>Detalhes do Ticket</title>
 
     <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/ticket-details.css}">
 </head>
 
 <body>
@@ -26,33 +27,48 @@
 
 <main>
 
-    <div class="page-header">
-        <div>
+    <div class="details-page-header">
+        <div class="details-heading">
             <h2>Detalhes do Ticket</h2>
-            <p th:text="'Ticket #' + ${ticket.id}"></p>
+            <p class="ticket-number"
+            th:text="'Ticket #' + ${ticket.id}"></p>
+
+            <div class="details-badges">
+                <span class="status"
+                    th:classappend="${ticket.status.toString() == 'OPEN' ? ' open' : (ticket.status.toString() == 'IN_PROGRESS' ? ' progress' : (ticket.status.toString() == 'RESOLVED' ? ' resolved' : (ticket.status.toString() == 'CLOSED' ? ' closed' : '')))}"
+                    th:text="${ticket.status.toString() == 'OPEN' ? 'Aberto' : (ticket.status.toString() == 'IN_PROGRESS' ? 'Em andamento' : (ticket.status.toString() == 'RESOLVED' ? 'Resolvido' : (ticket.status.toString() == 'CLOSED' ? 'Encerrado' : ticket.status)))}">
+                </span>
+
+                <span class="priority"
+                    th:classappend="${ticket.priority.toString() == 'LOW' ? ' priority-low' : (ticket.priority.toString() == 'MEDIUM' ? ' priority-medium' : (ticket.priority.toString() == 'HIGH' ? ' priority-high' : (ticket.priority.toString() == 'URGENT' ? ' priority-critical' : '')))}"
+                    th:text="${ticket.priority.toString() == 'LOW' ? 'Baixa prioridade' : (ticket.priority.toString() == 'MEDIUM' ? 'Média prioridade' : (ticket.priority.toString() == 'HIGH' ? 'Alta prioridade' : (ticket.priority.toString() == 'URGENT' ? 'Crítica' : ticket.priority)))}">
+                </span>
+            </div>
         </div>
 
-        <div>
-            <a th:href="@{/tickets/{id}/edit(id=${ticket.id})}"
-            class="new-ticket-button">
-            Editar
-        </a>
+        <div class="details-actions">
+            <div class="details-primary-actions">
+                <a th:href="@{/tickets/{id}/edit(id=${ticket.id})}"
+                class="new-ticket-button">
+                    Editar
+                </a>
 
-        <button type="button"
-        class="delete-button"
-        th:onclick="'deleteTicket(' + ${ticket.id} + ')'">
-            Excluir
-        </button>
+                <a th:href="@{/tickets}" class="back-button">
+                    Voltar
+                </a>
+            </div>
 
-        <a th:href="@{/tickets}" class="new-ticket-button">
-            Voltar
-        </a>
+            <button type="button"
+                    class="delete-button"
+                    th:onclick="'deleteTicket(' + ${ticket.id} + ')'">
+                Excluir ticket
+            </button>
         </div>
     </div>
 
     <div class="ticket-details-container">
 
-        <div class="ticket-detail">
+        <div class="ticket-detail ticket-title-detail">
             <strong>Título</strong>
             <p th:text="${ticket.title}"></p>
         </div>
@@ -67,17 +83,7 @@
             <p th:text="${ticket.assignee}"></p>
         </div>
 
-        <div class="ticket-detail">
-            <strong>Status</strong>
-            <p th:text="${ticket.status}"></p>
-        </div>
-
-        <div class="ticket-detail">
-            <strong>Prioridade</strong>
-            <p th:text="${ticket.priority}"></p>
-        </div>
-
-        <div class="ticket-detail">
+        <div class="ticket-detail description-detail">
             <strong>Descrição</strong>
             <p th:text="${ticket.description}"></p>
         </div>
