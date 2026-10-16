@@ -80,17 +80,29 @@ pipeline {
                 }
             }
         }
-        stage ('Deploy') {
+        stage('Deploy') {
             steps {
-                sh '''
-                    docker compose pull app
-                    docker compose up -d --no-deps app
-                '''
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'ghcr-credentials',
+                        usernameVariable: 'GHCR_USER',
+                        passwordVariable: 'GHCR_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        set +x
+                        trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+
+                        echo "$GHCR_TOKEN" | docker login ghcr.io \
+                            -u "$GHCR_USER" --password-stdin
+
+                        docker compose pull app
+                        docker compose up -d --no-deps app
+                    '''
+                }
             }
         }
-
     }
-
     post {
 
         success {
