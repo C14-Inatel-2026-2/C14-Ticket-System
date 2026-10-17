@@ -55,9 +55,54 @@ pipeline {
                 sh './mvnw package -DskipTests'
             }
         }
+        stage ('Build and Push Image') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'ghcr-credentials',
+                        usernameVariable: 'GHCR_USER',
+                        passwordVariable: 'GHCR_TOKEN'
+                    )
+                ]){
+                    sh '''
+                        set +x
+                        trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+                        echo "$GHCR_TOKEN" | docker login ghcr.io \
+                        -u "$GHCR_USER" --password-stdin
 
+                        docker build \
+                            -t ghcr.io/c14-inatel-2026-2/c14-ticket-system:${BUILD_NUMBER} \
+                            -t ghcr.io/c14-inatel-2026-2/c14-ticket-system:latest .
+
+                        docker push ghcr.io/c14-inatel-2026-2/c14-ticket-system:${BUILD_NUMBER}
+                        docker push ghcr.io/c14-inatel-2026-2/c14-ticket-system:latest
+                    '''
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'ghcr-credentials',
+                        usernameVariable: 'GHCR_USER',
+                        passwordVariable: 'GHCR_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        set +x
+                        trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+
+                        echo "$GHCR_TOKEN" | docker login ghcr.io \
+                            -u "$GHCR_USER" --password-stdin
+
+                        docker compose pull app
+                        docker compose up -d --no-deps app
+                    '''
+                }
+            }
+        }
     }
-
     post {
 
         success {

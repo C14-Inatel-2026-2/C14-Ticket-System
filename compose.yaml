@@ -25,7 +25,7 @@ services:
       context: .
       dockerfile: Dockerfile
 
-    image: c14-tickets-api:latest
+    image: ghcr.io/c14-inatel-2026-2/c14-ticket-system:latest
     container_name: c14-tickets-api
 
     environment:
