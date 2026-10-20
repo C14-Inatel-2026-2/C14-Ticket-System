@@ -56,6 +56,9 @@ pipeline {
             }
         }
         stage ('Build and Push Image') {
+            when {
+                branch 'main'
+            }
             steps {
                 withCredentials([
                     usernamePassword(
@@ -81,6 +84,9 @@ pipeline {
             }
         }
         stage('Deploy') {
+            when {
+                branch 'main'
+            }
             steps {
                 withCredentials([
                     usernamePassword(
