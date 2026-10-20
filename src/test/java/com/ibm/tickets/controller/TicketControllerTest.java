@@ -10,6 +10,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verifyNoInteractions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -41,6 +46,55 @@ import com.ibm.tickets.service.TicketService;
  */
 @WebMvcTest(TicketController.class)
 class TicketControllerTest {
+
+    static Stream<Arguments> invalidCreateFields() {
+        return Stream.of(
+                Arguments.of("assignee", "null"), Arguments.of("assignee", "\"\""),
+                Arguments.of("assignee", "\"   \""),
+                Arguments.of("assignee", "\"" + "a".repeat(101) + "\""),
+                Arguments.of("title", "\"" + "t".repeat(151) + "\""),
+                Arguments.of("project", "\"" + "p".repeat(101) + "\""),
+                Arguments.of("description", "\"   \""),
+                Arguments.of("priority", "null"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("invalidCreateFields")
+    void rejectsInvalidCreateBeforeCallingService(String field, String jsonValue) throws Exception {
+        String json = """
+                {"title":"Title","description":"Description","project":"Project",
+                 "assignee":"Owner","priority":"HIGH"}
+                """;
+        json = json.replaceAll("\"" + field + "\":\"[^\"]*\"",
+                java.util.regex.Matcher.quoteReplacement("\"" + field + "\":" + jsonValue));
+        mockMvc.perform(post("/api/tickets").session(session)
+                .contentType(MediaType.APPLICATION_JSON).content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors." + field).isString());
+        verifyNoInteractions(ticketService);
+    }
+
+    @Test
+    void rejectsCreateWithoutSessionBeforeCallingService() throws Exception {
+        mockMvc.perform(post("/api/tickets").contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"title":"Title","description":"Description","project":"Project",
+                         "assignee":"Owner","priority":"HIGH"}
+                        """))
+                .andExpect(status().isUnauthorized());
+        verifyNoInteractions(ticketService);
+    }
+
+    @Test
+    void rejectsUnknownPriorityBeforeCallingService() throws Exception {
+        mockMvc.perform(post("/api/tickets").session(session)
+                .contentType(MediaType.APPLICATION_JSON).content("""
+                        {"title":"Title","description":"Description","project":"Project",
+                         "assignee":"Owner","priority":"UNKNOWN"}
+                        """))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(ticketService);
+    }
 
     @Autowired
     private MockMvc mockMvc;

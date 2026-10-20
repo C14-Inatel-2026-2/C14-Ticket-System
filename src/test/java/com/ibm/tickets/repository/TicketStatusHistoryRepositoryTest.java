@@ -1,6 +1,8 @@
 package com.ibm.tickets.repository;
 
 import java.util.List;
+import java.time.OffsetDateTime;
+import jakarta.persistence.EntityManager;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,6 +30,9 @@ class TicketStatusHistoryRepositoryTest {
     @Autowired
     private TicketStatusHistoryRepository historyRepository;
 
+    @Autowired
+    private EntityManager entityManager;
+
     @Test
     void shouldFindHistoryOrderedByChangedAtDescending() {
         Ticket ticket = createAndSaveTicket();
@@ -47,6 +52,15 @@ class TicketStatusHistoryRepositoryTest {
                         TicketStatus.CLOSED);
 
         historyRepository.saveAndFlush(secondChange);
+
+        // Explicit timestamps make this ordering test independent of clock resolution.
+        entityManager.createNativeQuery("update ticket_status_history set changed_at = :time where id = :id")
+                .setParameter("time", OffsetDateTime.parse("2026-01-01T10:00:00Z"))
+                .setParameter("id", firstChange.getId()).executeUpdate();
+        entityManager.createNativeQuery("update ticket_status_history set changed_at = :time where id = :id")
+                .setParameter("time", OffsetDateTime.parse("2026-01-01T11:00:00Z"))
+                .setParameter("id", secondChange.getId()).executeUpdate();
+        entityManager.clear();
 
         List<TicketStatusHistory> history =
                 historyRepository
