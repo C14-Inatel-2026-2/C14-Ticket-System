@@ -1,6 +1,8 @@
 package com.ibm.tickets.repository;
 
 import java.util.List;
+import java.time.OffsetDateTime;
+import jakarta.persistence.EntityManager;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,6 +29,9 @@ class TicketCommentRepositoryTest {
     @Autowired
     private TicketCommentRepository commentRepository;
 
+    @Autowired
+    private EntityManager entityManager;
+
     @Test
     void shouldFindCommentsOrderedByCreatedAtDescending() {
         Ticket ticket = createAndSaveTicket();
@@ -44,6 +49,15 @@ class TicketCommentRepositoryTest {
                 "The problem has been resolved.");
 
         commentRepository.saveAndFlush(secondComment);
+
+        // Give the ordering fixture distinct times instead of relying on clock resolution.
+        entityManager.createNativeQuery("update ticket_comments set created_at = :time where id = :id")
+                .setParameter("time", OffsetDateTime.parse("2026-01-01T10:00:00Z"))
+                .setParameter("id", firstComment.getId()).executeUpdate();
+        entityManager.createNativeQuery("update ticket_comments set created_at = :time where id = :id")
+                .setParameter("time", OffsetDateTime.parse("2026-01-01T11:00:00Z"))
+                .setParameter("id", secondComment.getId()).executeUpdate();
+        entityManager.clear();
 
         List<TicketComment> comments =
                 commentRepository
