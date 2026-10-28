@@ -37,7 +37,7 @@ public class LoginController {
         }
         if (USERNAME.equals(username) && PASSWORD.equals(password)) {
             session.setAttribute("loggedUser", username);
-            return "redirect:/tickets";
+            return "redirect:/project";
         } 
 
         return "redirect:/?error";
