@@ -1,0 +1,137 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Projetos | C14 Tickets</title>
+
+    <link rel="stylesheet" href="/css/projects.css">
+</head>
+<body>
+
+<header class="navbar">
+    <a href="/project" class="brand">C14 Tickets</a>
+
+    <nav>
+        <a href="/project" class="active">Projetos</a>
+        <a href="/users/me">Perfil</a>
+    </nav>
+</header>
+
+<main class="container">
+
+    <section class="page-header">
+        <div>
+            <h1>Projetos</h1>
+            <p>Selecione um projeto para visualizar seus tickets.</p>
+        </div>
+    </section>
+
+    <section class="toolbar">
+        <input
+            type="search"
+            id="project-search"
+            placeholder="Buscar projeto..."
+            aria-label="Buscar projeto"
+        >
+        <span id="project-count"></span>
+    </section>
+
+    <section id="projects-grid" class="projects-grid">
+        <p class="message">Carregando projetos...</p>
+    </section>
+
+</main>
+
+<script>
+    const grid = document.getElementById("projects-grid");
+    const search = document.getElementById("project-search");
+    const count = document.getElementById("project-count");
+
+    let projects = [];
+
+    async function loadProjects() {
+        try {
+            const response = await fetch("/api/projects");
+
+            if (!response.ok) {
+                throw new Error("Erro ao carregar projetos");
+            }
+
+            projects = await response.json();
+            renderProjects(projects);
+
+        } catch (error) {
+            grid.textContent = "";
+
+            const message = document.createElement("p");
+            message.className = "message";
+            message.textContent = "Não foi possível carregar os projetos.";
+
+            grid.appendChild(message);
+        }
+    }
+
+    function renderProjects(items) {
+        grid.replaceChildren();
+        count.textContent = `${items.length} projeto(s)`;
+
+        if (items.length === 0) {
+            const message = document.createElement("p");
+            message.className = "message";
+            message.textContent = "Nenhum projeto encontrado.";
+            grid.appendChild(message);
+            return;
+        }
+
+        items.forEach(project => {
+            const card = document.createElement("a");
+            card.className = "project-card";
+            card.href = `/project/${project.id}/tickets`;
+
+            const icon = document.createElement("div");
+            icon.className = "project-icon";
+            icon.textContent = "📁";
+
+            const title = document.createElement("h2");
+            title.textContent = project.name;
+
+            const description = document.createElement("p");
+            description.className = "description";
+            description.textContent =
+                project.description || "Sem descrição.";
+
+            const footer = document.createElement("div");
+            footer.className = "project-footer";
+
+            const tickets = document.createElement("span");
+            tickets.textContent =
+                `${project.ticketCount ?? 0} tickets`;
+
+            const arrow = document.createElement("span");
+            arrow.textContent = "Ver tickets →";
+
+            footer.append(tickets, arrow);
+            card.append(icon, title, description, footer);
+            grid.appendChild(card);
+        });
+    }
+
+    search.addEventListener("input", () => {
+        const term = search.value.toLowerCase().trim();
+
+        const filtered = projects.filter(project =>
+            project.name.toLowerCase().includes(term)
+        );
+
+        renderProjects(filtered);
+    });
+
+    loadProjects();
+</script>
+
+</body>
+</html>

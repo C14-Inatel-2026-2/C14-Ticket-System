@@ -16,8 +16,8 @@
     <nav class="navbar">
         <h1>Ticket System</h1>
 
-        <a th:href="@{/tickets}" class="back-link">
-            Voltar aos Tickets
+        <a href="#" class="back-link" id="back-link">
+            Voltar
         </a>
     </nav>
 </header>
@@ -216,6 +216,15 @@
             console.error("Erro ao carregar atividades:", error);
         }
     }
+
+    const backLink = document.getElementById("back-link");
+
+    const returnUrl = sessionStorage.getItem("profileReturnUrl");
+
+    backLink.href = returnUrl || "/project";
+    backLink.addEventListener("click", () => {
+    sessionStorage.removeItem("profileReturnUrl");
+    });
 
     loadProfile();
     loadActivity();

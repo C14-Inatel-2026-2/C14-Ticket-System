@@ -44,22 +44,6 @@
             </div>
 
             <div class="form-group">
-                <label for="project">Projeto</label>
-
-                <select id="project" name="project" required>
-                    <option value="">Selecione um projeto</option>
-                    <option value="Ticket System"
-                            th:selected="${ticket.project == 'Ticket System'}">
-                        Ticket System
-                    </option>
-                    <option value="Projeto de Teste"
-                            th:selected="${ticket.project == 'Projeto de Teste'}">
-                        Projeto de Teste
-                    </option>
-                </select>
-            </div>
-
-            <div class="form-group">
                 <label for="owner">Responsável</label>
 
                 <input
@@ -113,8 +97,8 @@
 
             <div class="form-actions">
 
-                <a th:href="@{/tickets/{id}(id=${ticket.id})}"
-                   class="cancel-button">
+                <a href="#"
+                   class="cancel-button" id="cancel-button">
                     Cancelar
                 </a>
 
@@ -129,6 +113,7 @@
     </div>
 
 </main>
+    <script src="/js/project-navigation.js"></script>
     <script th:inline="javascript">
         const form = document.getElementById('ticket-form');
         const ticketId = /*[[${ticket.id}]]*/ 0;
@@ -142,7 +127,7 @@
 
             const ticket = {
                 title: document.getElementById('title').value.trim(),
-                project: document.getElementById('project').value,
+                project: /*[[${ticket.project}]]*/ "",
                 assignee: document.getElementById('owner').value.trim(),
                 priority: document.getElementById('priority').value,
                 description: document.getElementById('description').value.trim()
@@ -158,10 +143,15 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to update ticket');
+                    const errorBody = await response.text();
+
+                    console.error("HTTP Status:", response.status);
+                    console.error("Backend Response:", errorBody);
+
+                    throw new Error(`Failed to update ticket: HTTP ${response.status}`);
                 }
 
-                window.location.href = `/tickets/${ticketId}`;
+                backToTickets();
 
             } catch (error) {
                 console.error('Error updating ticket:', error);
@@ -170,15 +160,17 @@
 
         function checkIfFormIsValid() {
             const title = document.getElementById('title').value.trim();
-            const project = document.getElementById('project').value;
             const priority = document.getElementById('priority').value;
             const description = document.getElementById('description').value.trim();
 
             return title !== ''
-                && project !== ''
                 && priority !== ''
                 && description !== '';
         }
+
+        document.getElementById("cancel-button").href =
+        getTicketsUrl();
+
     </script>
 </body>
 </html>

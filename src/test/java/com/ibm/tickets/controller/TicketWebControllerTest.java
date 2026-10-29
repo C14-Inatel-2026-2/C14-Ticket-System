@@ -37,16 +37,21 @@ public class TicketWebControllerTest {
     private TicketService ticketService;
 
     private MockHttpSession session;
+    private Long projectId;
+    private String baseUrl;
 
     @BeforeEach 
     void setUp(){
         session = new MockHttpSession();
         session.setAttribute("loggedUser", "admin");
+
+        projectId = 3L;
+        baseUrl = "/project/" + projectId + "/tickets";
     }
 
     @Test 
     void shouldOpenNewTicketPage() throws Exception{
-        mockMvc.perform(get("/tickets/new")
+        mockMvc.perform(get(baseUrl + "/new")
                 .session(session))
                 .andExpect(status().isOk())
                 .andExpect(view().name("new-ticket"));
@@ -54,14 +59,14 @@ public class TicketWebControllerTest {
 
     @Test 
     void shouldReturnNotFoundForInvalidTicketPage() throws Exception{
-        mockMvc.perform(get("/tickets/invalid")
+        mockMvc.perform(get(baseUrl + "/invalid")
                 .session(session))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void shouldReturnTicketHomePage() throws Exception{
-        mockMvc.perform(get("/tickets").session(session))
+        mockMvc.perform(get(baseUrl).session(session))
         .andExpect(status().isOk())
         .andExpect(view().name("home"));
     }
@@ -81,7 +86,7 @@ public class TicketWebControllerTest {
         );
         when(ticketService.findById(4L)).thenReturn(ticketResponse);
 
-        mockMvc.perform(get("/tickets/4").session(session))
+        mockMvc.perform(get(baseUrl + "/4").session(session))
         .andExpect(status().isOk())
         .andExpect(view().name("ticket-details"));
     }
@@ -101,7 +106,7 @@ public class TicketWebControllerTest {
 
     when(ticketService.findById(4L)).thenReturn(ticketResponse);
 
-    mockMvc.perform(get("/tickets/4").session(session))
+    mockMvc.perform(get(baseUrl + "/4").session(session))
             .andExpect(status().isOk())
             .andExpect(view().name("ticket-details"))
             .andExpect(content().string(containsString("Excluir")));
@@ -122,7 +127,7 @@ public class TicketWebControllerTest {
 
         when(ticketService.findById(4L)).thenReturn(ticketResponse);
 
-        mockMvc.perform(get("/tickets/4/edit").session(session))
+        mockMvc.perform(get(baseUrl + "/4/edit").session(session))
         .andExpect(status().isOk())
         .andExpect(view().name("ticket-edit"))
         .andExpect(model().attribute("ticket", ticketResponse));
