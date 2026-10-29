@@ -25,7 +25,7 @@ public class LoginControllerTest {
         LoginController loginController = new LoginController();
         
         String result =loginController.login("admin", "admin", session);
-        assertEquals("redirect:/tickets", result);
+        assertEquals("redirect:/project", result);
     }
 
     @Test 
