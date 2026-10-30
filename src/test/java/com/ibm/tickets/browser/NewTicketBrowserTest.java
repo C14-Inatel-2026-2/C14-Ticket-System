@@ -4,10 +4,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.UUID;
-import org.junit.jupiter.api.TestInfo;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
+
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
@@ -15,17 +25,7 @@ import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.Route;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
-
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Exercises the real form script with controlled API responses, not a full E2E server.
@@ -47,10 +47,18 @@ class NewTicketBrowserTest {
                 .setChannel(System.getProperty("playwright.channel", "chromium")));
         context = browser.newContext();
         String template = Files.readString(Path.of("src/main/resources/templates/new-ticket.html"));
+        String projectNavigation = Files.readString(Path.of("src/main/resources/static/js/project-navigation.js"));
         context.route(ORIGIN + "/**", route -> {
-            if (route.request().url().endsWith("/tickets/new")) {
+            String url = route.request().url();
+            if (url.endsWith("/tickets/new")) {
                 route.fulfill(new Route.FulfillOptions().setContentType("text/html").setBody(template));
-            } else {
+            } else if (url.endsWith("api/projects")){
+                route.fulfill(new Route.FulfillOptions().setContentType("application/json").setBody("""
+                    [{"id": "3", "name": "Ticket System"}]
+                    """));
+            } else if (url.endsWith("/js/project-navigation.js")) {
+                route.fulfill(new Route.FulfillOptions().setContentType("application/javascript").setBody(projectNavigation));
+            }else {
                 route.fulfill(new Route.FulfillOptions().setContentType("text/html").setBody("<p>Lista</p>"));
             }
         });
@@ -62,7 +70,7 @@ class NewTicketBrowserTest {
             }
         });
         respond(500, "text/plain", "unavailable");
-        page.navigate(ORIGIN + "/tickets/new");
+        page.navigate(ORIGIN + "/project/3/tickets/new");
     }
 
     @AfterEach
@@ -84,7 +92,6 @@ class NewTicketBrowserTest {
 
     private void fillValid() {
         page.locator("#title").fill("Impressora sem papel");
-        page.locator("#project").selectOption("Ticket System");
         page.locator("#owner").fill("Pessoa de teste");
         page.locator("#priority").selectOption("HIGH");
         page.locator("#description").fill("Descrição preservada");
@@ -114,7 +121,7 @@ class NewTicketBrowserTest {
     @Test
     void enterReportsAllRequiredFields() {
         page.locator("#title").press("Enter");
-        for (String field : new String[]{"title", "project", "owner", "priority", "description"}) {
+        for (String field : new String[]{"title", "owner", "priority", "description"}) {
             assertThat(page.locator("#" + field + "-error")).isVisible();
         }
         assertThat(page.locator("#title")).isFocused();
@@ -123,8 +130,7 @@ class NewTicketBrowserTest {
     }
 
     static Stream<Arguments> textLimits() {
-        return Stream.of(Arguments.of("title", 150), Arguments.of("owner", 100),
-                Arguments.of("project", 100));
+        return Stream.of(Arguments.of("title", 150), Arguments.of("owner", 100));
     }
 
     private void assignRawValue(String field, String value) {
@@ -176,7 +182,7 @@ class NewTicketBrowserTest {
         assertThat(page.locator("#owner-error")).isHidden();
         respond(201, "application/json", "{\"id\":1}");
         submit();
-        assertThat(page).hasURL(ORIGIN + "/tickets");
+        assertThat(page).hasURL(ORIGIN + "/project/3/tickets");
         assertEquals(2, posts.get());
     }
 
@@ -201,7 +207,7 @@ class NewTicketBrowserTest {
         assertThat(page.locator("#title")).hasValue("Impressora sem papel");
         assertThat(page.locator("#owner")).hasValue("Pessoa de teste");
         assertThat(page.locator("#description")).hasValue("Descrição preservada");
-        assertThat(page).hasURL(ORIGIN + "/tickets/new");
+        assertThat(page).hasURL(ORIGIN + "/project/3/tickets/new");
         assertEquals(0, page.locator("#ticket-form img").count());
         assertEquals(1, posts.get());
         if (status == 401) assertThat(page.locator("#form-feedback")).containsText("sessão");
@@ -213,9 +219,22 @@ class NewTicketBrowserTest {
         page.unroute("**/api/tickets");
         page.route("**/api/tickets", route -> route.abort("failed"));
         submit();
-        assertThat(page.locator("#form-feedback")).containsText("confirmar");
+        assertThat(page.locator("#form-feedback")).containsText("Seus dados foram mantidos");
         assertThat(page.locator("#owner")).hasValue("Pessoa de teste");
-        assertThat(page).hasURL(ORIGIN + "/tickets/new");
+        assertThat(page).hasURL(ORIGIN + "/project/3/tickets/new");
         assertEquals(1, posts.get());
+    }
+
+    @Test
+    void includesCurrentProjectInTicketPayload() {
+        fillValid();
+        page.waitForRequest(
+            request -> request.method().equals("POST")
+                    && request.url().endsWith("/api/tickets"),
+            () -> submit()
+        );
+
+        assertEquals(1, posts.get());
+        assertTrue(payload.get().contains("\"project\":\"Ticket System\""));
     }
 }
