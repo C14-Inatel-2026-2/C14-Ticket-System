@@ -45,17 +45,6 @@
             </div>
 
             <div class="form-group">
-                <label for="project">Projeto</label>
-
-                <select id="project" aria-describedby="project-error" name="project" required>
-                    <option value="">Selecione um projeto</option>
-                    <option value="Ticket System">Ticket System</option>
-                    <option value="Projeto de Teste">Projeto de Teste</option>
-                </select>
-                <p id="project-error" class="field-error" hidden></p>
-            </div>
-
-            <div class="form-group">
                 <label for="owner">Responsável</label>
 
                 <input
@@ -97,7 +86,7 @@
 
             <div class="form-actions">
 
-                <a th:href="@{/tickets}" class="cancel-button">
+                <a href="#" class="cancel-button" id="cancel-button">
                     Cancelar
                 </a>
 
@@ -112,13 +101,12 @@
     </div>
 
 </main>
-
+<script src="/js/project-navigation.js"></script>
 <script>
     const form = document.getElementById('ticket-form');
     const feedback = document.getElementById('form-feedback');
     const fields = [
         {id: 'title', api: 'title', label: 'o título', max: 150, server: 'Title'},
-        {id: 'project', api: 'project', label: 'o projeto', max: 100, server: 'Project'},
         {id: 'owner', api: 'assignee', label: 'o responsável', max: 100, server: 'Assignee'},
         {id: 'priority', api: 'priority', label: 'a criticidade', server: 'Priority'},
         {id: 'description', api: 'description', label: 'a descrição', server: 'Description'}
@@ -141,13 +129,35 @@
     }
 
     function requiredMessage(field) {
-        if (field.id === 'project') return 'Selecione um projeto.';
-        if (field.id === 'priority') return 'Selecione a criticidade.';
+        if (field.id === 'priority') {
+            return 'Selecione a criticidade.';
+        }
+
         return 'Informe ' + field.label + '.';
     }
     function limitMessage(field) { return field.label.charAt(0).toUpperCase() + field.label.slice(1) + ' deve ter no máximo ' + field.max + ' caracteres.'; }
     function focusFirstError() {
         form.querySelector('[aria-invalid="true"]')?.focus();
+    }
+
+    async function getCurrentProjectName() {
+        const response = await fetch("/api/projects");
+
+        if (!response.ok) {
+            throw new Error("Erro ao carregar projetos");
+        }
+
+        const projects = await response.json();
+
+        const project = projects.find(
+            item => String(item.id) === getProjectId()
+        );
+
+        if (!project) {
+            throw new Error("Projeto não encontrado");
+        }
+
+        return project.name;
     }
 
     for (const field of fields) {
@@ -176,18 +186,26 @@
         }
 
         let response;
+
         try {
+            ticket.project = await getCurrentProjectName();
+
             response = await fetch('/api/tickets', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(ticket)
             });
+
         } catch (error) {
-            showFeedback('Não foi possível confirmar a criação do ticket. Seus dados foram mantidos. Confira a lista de tickets antes de tentar novamente.');
+            console.error("Erro ao criar ticket:", error);
+
+            showFeedback(
+                'Não foi possível criar o ticket. Seus dados foram mantidos.'
+            );
             return;
         }
         if (response.ok) {
-            window.location.href = '/tickets';
+            backToTickets();
             return;
         }
         if (response.status === 401) {
@@ -218,6 +236,8 @@
         }
         showFeedback(genericError);
     });
+    document.getElementById("cancel-button").href = getTicketsUrl();
+
 </script>
 
 </body>

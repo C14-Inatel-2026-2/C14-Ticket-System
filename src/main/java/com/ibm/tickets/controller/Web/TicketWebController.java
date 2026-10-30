@@ -15,7 +15,7 @@ import com.ibm.tickets.service.TicketService;
  * TicketWebController
  */
 @Controller
-@RequestMapping("/tickets")
+@RequestMapping("project/{projectId}/tickets")
 public class TicketWebController {
 
     private final TicketService ticketService;
@@ -25,25 +25,25 @@ public class TicketWebController {
     }
 
     @GetMapping("/new")
-    public String showCreateForm() {
+    public String showCreateForm(@PathVariable Long projectId) {
         return "new-ticket";
     }
 
     @GetMapping
-    public String showTicketList(){
+    public String showTicketList(@PathVariable Long projectId){
         return "home";
     }
 
-    @GetMapping("/{id:\\d+}")
-    public String showTicketDetails(@PathVariable Long id, Model model){
-        TicketResponse ticketResponse = ticketService.findById(id);
+    @GetMapping("/{ticketId:\\d+}")
+    public String showTicketDetails(@PathVariable Long projectId, @PathVariable Long ticketId, Model model){
+        TicketResponse ticketResponse = ticketService.findById(ticketId);
         model.addAttribute("ticket", ticketResponse);
         return "ticket-details";
     }
 
-    @GetMapping("/{id}/edit")
-    public String showEditForm(@PathVariable Long id, Model model){
-        TicketResponse ticketResponse = ticketService.findById(id);
+    @GetMapping("/{ticketId}/edit")
+    public String showEditForm(@PathVariable Long projectId, @PathVariable Long ticketId, Model model){
+        TicketResponse ticketResponse = ticketService.findById(ticketId);
         model.addAttribute("ticket", ticketResponse);
         return "ticket-edit";
     }

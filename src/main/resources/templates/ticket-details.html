@@ -9,6 +9,7 @@
 
     <link rel="stylesheet" th:href="@{/css/home.css}">
     <link rel="stylesheet" th:href="@{/css/ticket-details.css}">
+    
 </head>
 
 <body>
@@ -48,12 +49,11 @@
 
         <div class="details-actions">
             <div class="details-primary-actions">
-                <a th:href="@{/tickets/{id}/edit(id=${ticket.id})}"
-                class="new-ticket-button">
+                <a href="#" class="new-ticket-button" id="edit-button">
                     Editar
                 </a>
 
-                <a th:href="@{/tickets}" class="back-button">
+                <a href="#" class="back-button" id="back-button">
                     Voltar
                 </a>
             </div>
@@ -91,6 +91,7 @@
     </div>
 
 </main>
+<script src="/js/project-navigation.js"></script>
 <script>
     async function deleteTicket(ticketId){
         const confirmed = confirm(
@@ -114,11 +115,19 @@
                 'Ticket excluído com sucesso!'
             );
 
-            window.location.href = '/tickets';
+            backToTickets();
         } catch(error){
             console.error('Erro ao tentar deletar ticket: ', error);
         }
     }
+
+    document.getElementById("back-button").href =
+    getTicketsUrl();
+
+    const ticketId = window.location.pathname.split("/").pop();
+
+    document.getElementById("edit-button").href =
+    getTicketEditUrl(ticketId);
 </script>
 </body>
 </html>

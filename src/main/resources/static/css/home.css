@@ -334,3 +334,44 @@ tbody tr:last-child td {
         padding: 14px;
     }
 }
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.back-projects {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    color: #8cb4ff;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    white-space: nowrap;
+
+    transition: color 0.2s;
+}
+
+.back-projects:hover {
+    color: #ffffff;
+}
+
+@media (max-width: 600px) {
+    .topbar {
+        flex-wrap: wrap;
+    }
+
+    .topbar-actions {
+        gap: 14px;
+    }
+}

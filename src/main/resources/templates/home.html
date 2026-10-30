@@ -24,8 +24,12 @@
             </button>
         </form>
 
-        <a th:href="@{/users/me}" class="profile-link">
+        <a th:href="@{/users/me}" class="profile-link" id="profile-link">
             Meu Perfil
+        </a>
+
+        <a href="/project" class="back-projects">
+            ← Voltar aos projetos
         </a>
 
     </div>
@@ -35,7 +39,7 @@
         <div class="page-header">
             <h2>Tickets</h2>
 
-            <a class="new-ticket-button" th:href="@{/tickets/new}">
+            <a id="new-ticket-button" class="new-ticket-button" href="#">
                 Novo Ticket
             </a>
         </div>
@@ -84,29 +88,29 @@
         </div>
 
     </main>
-
+    <script src="/js/project-navigation.js"></script>
     <script>
-    async function loadTickets(status = "", priority ="") {
-
+    async function loadTickets(status = "", priority = "") {
         try {
-            let url = "/api/tickets";
             const params = new URLSearchParams();
 
             if (status) {
                 params.append("status", status);
             }
+
             if (priority) {
                 params.append("priority", priority);
             }
-            if (params.toString()) {
-                url += "?" + params.toString();
-            }
+
+            const url = params.toString()
+                ? `/api/tickets?${params.toString()}`
+                : "/api/tickets";
 
             const response = await fetch(url);
 
             if (!response.ok) {
                 throw new Error(
-                    "Erro ao buscar tickets. Status: " + response.status
+                    `Erro ao carregar tickets: ${response.status}`
                 );
             }
 
@@ -121,55 +125,79 @@
 
     function renderTickets(tickets) {
 
-        const ticketList =
-            document.getElementById("ticket-list");
+        const ticketList = document.getElementById("ticket-list");
 
-        ticketList.innerHTML = "";
+        ticketList.replaceChildren();
 
         if (tickets.length === 0) {
+            const row = document.createElement("tr");
+            const cell = document.createElement("td");
 
-            ticketList.innerHTML = `
-                <tr>
-                    <td colspan="6" class="empty-message">
-                        Nenhum ticket encontrado.
-                    </td>
-                </tr>
-            `;
+            cell.colSpan = 6;
+            cell.classList.add("empty-message");
+            cell.textContent = "Nenhum ticket encontrado.";
 
+            row.appendChild(cell);
+            ticketList.appendChild(row);
             return;
         }
 
         tickets.forEach(ticket => {
 
+            const ticketId = Number(ticket.id);
+
+            if (!Number.isSafeInteger(ticketId) || ticketId <= 0) {
+                return;
+            }
             const row = document.createElement("tr");
+            const idCell = document.createElement("td");
 
-            row.innerHTML = `
-                <td>${ticket.id}</td>
+            idCell.textContent = ticket.id ?? "";
+            row.appendChild(idCell);
 
-                <td>
-                    <a
-                        href="/tickets/${ticket.id}"
-                        class="ticket-link">
-                        ${ticket.title}
-                    </a>
-                </td>
+            const titleCell = document.createElement("td");
+            const link = document.createElement("a");
 
-                <td>${ticket.project}</td>
+            link.href = getTicketDetailsUrl(ticketId);
+            link.classList.add("ticket-link");
+            link.textContent = ticket.title ?? "";
 
-                <td>${ticket.assignee}</td>
+            titleCell.appendChild(link);
+            row.appendChild(titleCell);
 
-                <td>
-                    <span class="status ${getStatusClass(ticket.status)}">
-                        ${getStatusLabel(ticket.status)}
-                    </span>
-                </td>
+            const projectCell = document.createElement("td");
+            projectCell.textContent = ticket.project ?? "";
+            row.appendChild(projectCell);
 
-                <td>
-                    <span class="priority ${getPriorityClass(ticket.priority)}">
-                        ${getPriorityLabel(ticket.priority)}
-                    </span>
-                </td>
-            `;
+            const assigneeCell = document.createElement("td");
+            assigneeCell.textContent = ticket.assignee ?? "";
+            row.appendChild(assigneeCell);
+
+            const statusCell = document.createElement("td");
+            const status = document.createElement("span");
+
+            status.classList.add("status");
+            const statusClass = getStatusClass(ticket.status);
+            if (statusClass) {
+                status.classList.add(statusClass);
+            }
+            status.textContent = getStatusLabel(ticket.status);
+
+            statusCell.appendChild(status);
+            row.appendChild(statusCell);
+
+            const priorityCell = document.createElement("td");
+            const priority = document.createElement("span");
+
+            priority.classList.add("priority");
+            const priorityClass = getPriorityClass(ticket.priority);
+            if (priorityClass) {
+                priority.classList.add(priorityClass);
+            }
+            priority.textContent = getPriorityLabel(ticket.priority);
+
+            priorityCell.appendChild(priority);
+            row.appendChild(priorityCell);
 
             ticketList.appendChild(row);
         });
@@ -269,6 +297,12 @@
 
     statusFilter.addEventListener("change", applyFilters);
     priorityFilter.addEventListener("change", applyFilters);
+    document.getElementById("new-ticket-button").href =
+    getNewTicketUrl();
+
+    document.getElementById("profile-link").addEventListener("click", () => {
+    sessionStorage.setItem("profileReturnUrl", window.location.pathname);
+    });
 
     showSuccessMessage();
     loadTickets();
