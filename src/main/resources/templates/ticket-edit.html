@@ -65,6 +65,33 @@
                 <p id="owner-hint" class="field-hint">Máximo de 100 caracteres</p>
                 <p id="owner-error" class="field-error" hidden></p>
             </div>
+            <div class="form-group">
+                <label for="status">Status</label>
+
+                <select id="status" name="status" required>
+                    <option value="OPEN"
+                            th:selected="${ticket.status.name() == 'OPEN'}">
+                        Aberto
+                    </option>
+
+                    <option value="IN_PROGRESS"
+                            th:selected="${ticket.status.name() == 'IN_PROGRESS'}">
+                        Em andamento
+                    </option>
+
+                    <option value="RESOLVED"
+                            th:selected="${ticket.status.name() == 'RESOLVED'}">
+                        Resolvido
+                    </option>
+
+                    <option value="CLOSED"
+                            th:selected="${ticket.status.name() == 'CLOSED'}">
+                        Encerrado
+                    </option>
+                </select>
+
+                <p id="status-error" class="field-error" hidden></p>
+            </div>
 
             <div class="form-group">
                 <label for="priority">Criticidade</label>
@@ -133,12 +160,14 @@
         const feedback = document.getElementById('form-feedback');
         const ticketId = /*[[${ticket.id}]]*/ 0;
         const project = /*[[${ticket.project}]]*/"";
-
+        const originalStatus = /*[[${ticket.status.name()}]]*/ "OPEN";
+        
         const fields = [
             {id: 'title', api: 'title', label: 'o título', max:150, server: 'Title'},
             {id: 'owner', api: 'assignee', label: 'o responsável', max: 100, server: 'Assignee'},
             {id: 'priority', api: 'priority', label: 'a criticidade', server: 'Priority'},
-            {id: 'description', api: 'description', label: 'a descrição', server: 'Description'}
+            {id: 'description', api: 'description', label: 'a descrição', server: 'Description'},
+            {id: 'status', api: 'status', label: 'o status', server: 'Status'}
         ];
 
         const genericError = 'Não foi possível salvar as alterações. Seus dados foram mantidos. Tente novamente.';
@@ -279,7 +308,33 @@
                 });
 
                 if (response.ok) {
-                    backToTickets();
+
+                    const newStatus = document.getElementById('status').value;
+
+                    if (newStatus !== originalStatus) {
+
+                        const statusResponse = await fetch(
+                            `/api/tickets/${ticketId}/status`,
+                            {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    status: newStatus
+                                })
+                            }
+                        );
+
+                        if (!statusResponse.ok) {
+                            showFeedback(
+                                'Os dados do ticket foram salvos, mas não foi possível atualizar o status.'
+                            );
+                            return;
+                        }
+                    }
+
+                    window.location.href = getTicketDetailsUrl(ticketId);
                     return;
                 }
 
@@ -312,7 +367,7 @@
                 showFeedback(genericError);
             }
         });
-        document.getElementById('cancel-button').href = getTicketsUrl();
+        document.getElementById('cancel-button').href =  getTicketDetailsUrl(ticketId)
 
     </script>
 </body>
