@@ -181,3 +181,203 @@
         grid-column: auto;
     }
 }
+
+/* COMENTÁRIOS E HISTÓRICO */
+
+.ticket-activity {
+    margin-top: 28px;
+    padding: 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 4px 18px rgba(36, 59, 100, 0.04);
+}
+
+.activity-header {
+    margin-bottom: 28px;
+}
+
+.activity-header h2 {
+    color: var(--navy);
+    font-size: 22px;
+    margin-bottom: 6px;
+}
+
+.activity-header p {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+/* LINHA DO TEMPO */
+
+.ticket-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.activity-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #e8f0ff;
+    color: #315a9d;
+    font-size: 18px;
+}
+
+.activity-item.history .activity-marker {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.activity-body {
+    flex: 1;
+    min-width: 0;
+    padding: 16px 18px;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.activity-item.history .activity-body {
+    background: #f8fafc;
+    border-style: dashed;
+}
+
+.activity-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.activity-item-header strong {
+    color: var(--navy);
+    font-size: 14px;
+}
+
+.activity-item-header time {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.activity-body p {
+    margin: 0;
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.activity-empty,
+.activity-error {
+    color: var(--muted);
+    text-align: center;
+    padding: 24px;
+}
+
+.activity-error {
+    color: #a33434;
+}
+
+/* FORMULÁRIO DE COMENTÁRIO */
+
+.comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+}
+
+.comment-form label {
+    color: var(--navy);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.comment-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 120px;
+    padding: 14px;
+    resize: vertical;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.comment-form textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.comment-form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+#comment-feedback {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+#comment-submit {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 9px;
+    background: var(--navy);
+    color: #fff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+#comment-submit:hover {
+    opacity: 0.88;
+}
+
+#comment-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+    .ticket-activity {
+        padding: 16px;
+    }
+
+    .activity-item-header,
+    .comment-form-footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    #comment-submit {
+        width: 100%;
+    }
+}
