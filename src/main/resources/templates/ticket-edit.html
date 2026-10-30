@@ -30,6 +30,7 @@
     <div class="ticket-form-container">
 
         <form id="ticket-form">
+            <p id="form-feedback" class="form-feedback" role="alert" hidden></p>
 
             <div class="form-group">
                 <label for="title">Título</label>
@@ -39,8 +40,13 @@
                     id="title"
                     name="title"
                     th:value="${ticket.title}"
+                    aria-describedby="title-hint title-error"
+                    maxlength="150"
+                    placeholder="Digite o título do ticket"
                     required
                 >
+                <p id="title-hint" class="field-hint">Máximo de 150 caracteres</p>
+                <p id="title-error" class="field-error" hidden></p>
             </div>
 
             <div class="form-group">
@@ -51,14 +57,19 @@
                     id="owner"
                     name="owner"
                     th:value="${ticket.assignee}"
+                    aria-describedby="owner-hint owner-error"
+                    maxlength="100"
                     placeholder="Nome do responsável"
+                    required
                 >
+                <p id="owner-hint" class="field-hint">Máximo de 100 caracteres</p>
+                <p id="owner-error" class="field-error" hidden></p>
             </div>
 
             <div class="form-group">
                 <label for="priority">Criticidade</label>
 
-                <select id="priority" name="priority" required>
+                <select id="priority" name="priority" aria-describedby="priority-error" required>
                     <option value="">Selecione</option>
 
                     <option value="LOW"
@@ -81,6 +92,7 @@
                         Crítica
                     </option>
                 </select>
+                <p id="priority-error" class="field-error" hidden></p>
             </div>
 
             <div class="form-group">
@@ -90,9 +102,11 @@
                     id="description"
                     name="description"
                     rows="7"
+                    aria-describedby="description-error"
                     required
                     th:text="${ticket.description}"
                 ></textarea>
+                <p id="description-error" class="field-error" hidden></p>
             </div>
 
             <div class="form-actions">
@@ -116,21 +130,143 @@
     <script src="/js/project-navigation.js"></script>
     <script th:inline="javascript">
         const form = document.getElementById('ticket-form');
+        const feedback = document.getElementById('form-feedback');
         const ticketId = /*[[${ticket.id}]]*/ 0;
+        const project = /*[[${ticket.project}]]*/"";
+
+        const fields = [
+            {id: 'title', api: 'title', label: 'o título', max:150, server: 'Title'},
+            {id: 'owner', api: 'assignee', label: 'o responsável', max: 100, server: 'Assignee'},
+            {id: 'priority', api: 'priority', label: 'a criticidade', server: 'Priority'},
+            {id: 'description', api: 'description', label: 'a descrição', server: 'Description'}
+        ];
+
+        const genericError = 'Não foi possível salvar as alterações. Seus dados foram mantidos. Tente novamente.';
+
+        form.noValidate = true;
+
+        function showFeedback(message) {
+            feedback.textContent = message;
+            feedback.hidden = !message;
+        }
+
+        function fieldError(field, message){
+            const input = document.getElementById(field.id);
+            const error = document.getElementById(field.id + '-error');
+
+            error.textContent = message;
+            error.hidden = !message;
+
+            if (message){
+                input.setAttribute('aria-invalid', 'true');
+            } else {
+                input.removeAttribute('aria-invalid');
+            }
+        }
+
+        function requiredMessage(field){
+            if (field.id === 'priority') {
+                return 'Selecione a criticidade.';
+            }
+
+            return 'Informe ' + field.label + '.';
+        }
+        function limitMessage(field) {
+            return field.label.charAt(0).toUpperCase()
+            + field.label.slice(1)
+            + ' deve ter no máximo ' + field.max + ' caracteres.';
+        }
+
+        function focusFirstError() {
+            form.querySelector('[aria-invalid="true"]')?.focus();
+        }
+
+        function validateForm() {
+            let invalid = false;
+
+            for (const field of fields) {
+                const value = document.getElementById(field.id).value;
+
+                const message = !value.trim() ? requiredMessage(field) 
+                : field.max && value.length > field.max ? limitMessage(field) : '';
+
+                fieldError(field, message);
+                invalid ||= Boolean(message);
+            }
+
+            if (invalid) {
+                showFeedback('Revise os campos indicados antes de salvar as alterações.');
+                focusFirstError();
+                return false;
+            }
+
+            return true;
+        }
+        
+        for (const field of fields) {
+            const input = document.getElementById(field.id);
+
+            const clear = () => { fieldError(field, ''); };
+
+            input.addEventListener('input', clear);
+            input.addEventListener('change', clear);
+        }
+
+        function handleApiErrors(problem) {
+            const errors = problem?.errors;
+
+            if (!errors || typeof errors !== 'object' || Array.isArray(errors)) {
+                return false;
+            }
+
+            let recognized = false;
+            let unknown = false;
+
+            for (const [key, value] of Object.entries(errors)) {
+                const field = fields.find(item => item.api === key);
+
+                let message = '';
+
+                if (field && value === field.server + ' is required') {
+                    message = requiredMessage(field);
+                } else if (
+                    field?.max &&
+                    value === field.server + ' must have at most ' + field.max + ' characters') {
+                        message = limitMessage(field);
+                    }
+
+                if (message) {
+                    fieldError(field, message);
+                    recognized = true;
+                } else {
+                    unknown = true;
+                }
+            }
+            if (recognized) {
+                showFeedback(unknown ? genericError : 'Revise os campos indicados antes de salvar as alterações.');
+                focusFirstError();
+                return true;
+            }
+            
+            return false;
+        }
+
 
         form.addEventListener("submit", async function(event) {
             event.preventDefault();
 
-            if (!checkIfFormIsValid()) {
+            showFeedback('');
+
+            if (!validateForm()) {
                 return;
             }
 
             const ticket = {
-                title: document.getElementById('title').value.trim(),
-                project: /*[[${ticket.project}]]*/ "",
-                assignee: document.getElementById('owner').value.trim(),
+                title: document.getElementById('title').value,
+                project: project,
+                assignee: document.getElementById('owner').value,
                 priority: document.getElementById('priority').value,
-                description: document.getElementById('description').value.trim()
+                description: document.getElementById('description').value
             };
 
             try {
@@ -142,34 +278,41 @@
                     body: JSON.stringify(ticket)
                 });
 
-                if (!response.ok) {
-                    const errorBody = await response.text();
-
-                    console.error("HTTP Status:", response.status);
-                    console.error("Backend Response:", errorBody);
-
-                    throw new Error(`Failed to update ticket: HTTP ${response.status}`);
+                if (response.ok) {
+                    backToTickets();
+                    return;
                 }
 
-                backToTickets();
+                if (response.status == 401){
+                    showFeedback(
+                        'Sua sessão expirou. Entre novamente em outra aba e volte para salvar as alterações. Seus dados foram mantidos.');
+                    return;
+                }
+                if (response.status === 404) {
+                    showFeedback('O ticket não foi encontrado. Seus dados foram mantidos.');
+                    return;
+                }
+
+                if (response.status === 400) {
+                    let problem;
+
+                    try {
+                        problem = await response.json();
+                    } catch (error) {
+                        // generic error
+                    }
+                    if (handleApiErrors(problem)){
+                        return;
+                    }
+                }
+                showFeedback(genericError);
 
             } catch (error) {
                 console.error('Error updating ticket:', error);
+                showFeedback(genericError);
             }
         });
-
-        function checkIfFormIsValid() {
-            const title = document.getElementById('title').value.trim();
-            const priority = document.getElementById('priority').value;
-            const description = document.getElementById('description').value.trim();
-
-            return title !== ''
-                && priority !== ''
-                && description !== '';
-        }
-
-        document.getElementById("cancel-button").href =
-        getTicketsUrl();
+        document.getElementById('cancel-button').href = getTicketsUrl();
 
     </script>
 </body>
