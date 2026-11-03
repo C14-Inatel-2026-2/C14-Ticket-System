@@ -34,12 +34,13 @@ class ProjectRepositoryTest {
 
     @Test
     void preservesDifferentNamesAndIndependentIdentities() {
+        long existingProjects = repository.count();
         Project first = repository.saveAndFlush(new Project("Ticket System", null));
         Project second = repository.saveAndFlush(new Project("C14 Ticket System", null));
         Project sameName = repository.saveAndFlush(new Project("Ticket System", null));
         entityManager.clear();
 
-        assertEquals(3, repository.count());
+        assertEquals(existingProjects + 3, repository.count());
         assertNotEquals(first.getId(), second.getId());
         assertNotEquals(first.getId(), sameName.getId());
         assertEquals("Ticket System", repository.findById(first.getId()).orElseThrow().getName());
