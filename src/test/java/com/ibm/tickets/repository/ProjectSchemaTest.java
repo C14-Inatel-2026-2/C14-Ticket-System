@@ -19,11 +19,13 @@ class ProjectSchemaTest {
 
     @Test
     void storesNamesWithoutMergingAndAllowsOptionalDescription() {
-        jdbc.update("insert into projects (name) values (?)", "Ticket System");
-        jdbc.update("insert into projects (name) values (?)", "C14 Ticket System");
-        assertEquals(2, jdbc.queryForObject("select count(*) from projects", Integer.class));
+        jdbc.update("insert into projects (name) values (?)", "Schema Ticket System");
+        jdbc.update("insert into projects (name) values (?)", "Schema C14 Ticket System");
+        assertEquals(2, jdbc.queryForObject("""
+                select count(*) from projects where name in (?, ?)
+                """, Integer.class, "Schema Ticket System", "Schema C14 Ticket System"));
         assertNull(jdbc.queryForObject("select description from projects where name = ?",
-                String.class, "Ticket System"));
+                String.class, "Schema Ticket System"));
     }
 
     @Test
@@ -34,8 +36,10 @@ class ProjectSchemaTest {
 
     @Test
     void acceptsExistingNameLimit() {
-        jdbc.update("insert into projects (name) values (?)", "x".repeat(100));
-        assertEquals("x".repeat(100), jdbc.queryForObject("select name from projects", String.class));
+        String name = "x".repeat(100);
+        jdbc.update("insert into projects (name) values (?)", name);
+        assertEquals(name, jdbc.queryForObject(
+                "select name from projects where name = ?", String.class, name));
     }
 
     @Test
