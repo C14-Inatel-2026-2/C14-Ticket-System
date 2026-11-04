@@ -2,6 +2,7 @@ package com.ibm.tickets.repository;
 
 import com.ibm.tickets.model.Project;
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -51,5 +52,59 @@ class ProjectRepositoryTest {
     @Test
     void returnsEmptyForUnknownProject() {
         assertTrue(repository.findById(Long.MAX_VALUE).isEmpty());
+    }
+
+    @Test
+    void countsTicketsUsingExactLegacyProjectName() {
+        repository.saveAndFlush(new Project("Catalog Exact", null));
+        repository.saveAndFlush(new Project("catalog exact", null));
+        repository.saveAndFlush(new Project(" Catalog Exact ", null));
+        insertTicket("First exact", "Catalog Exact");
+        insertTicket("Second exact", "Catalog Exact");
+        insertTicket("Lowercase", "catalog exact");
+        insertTicket("Unmatched", "Missing project");
+        entityManager.clear();
+
+        List<ProjectCatalogView> catalog = repository.findCatalog();
+
+        assertEquals(2, ticketCount(catalog, "Catalog Exact"));
+        assertEquals(1, ticketCount(catalog, "catalog exact"));
+        assertEquals(0, ticketCount(catalog, " Catalog Exact "));
+    }
+
+    @Test
+    void listsEveryPersistedProjectIncludingDuplicateNames() {
+        Project first = repository.saveAndFlush(new Project("Catalog Duplicate", "First"));
+        Project second = repository.saveAndFlush(new Project("Catalog Duplicate", "Second"));
+        insertTicket("First duplicate", "Catalog Duplicate");
+        insertTicket("Second duplicate", "Catalog Duplicate");
+        entityManager.clear();
+
+        List<ProjectCatalogView> duplicates = repository.findCatalog().stream()
+                .filter(project -> project.getName().equals("Catalog Duplicate"))
+                .toList();
+
+        assertEquals(2, duplicates.size());
+        assertEquals(List.of(first.getId(), second.getId()),
+                duplicates.stream().map(ProjectCatalogView::getId).toList());
+        assertTrue(duplicates.stream().allMatch(project -> project.getTicketCount() == 2));
+    }
+
+    private void insertTicket(String title, String project) {
+        entityManager.createNativeQuery("""
+                insert into tickets (title, description, project, assignee)
+                values (:title, 'Description', :project, 'Owner')
+                """)
+                .setParameter("title", title)
+                .setParameter("project", project)
+                .executeUpdate();
+    }
+
+    private long ticketCount(List<ProjectCatalogView> catalog, String projectName) {
+        return catalog.stream()
+                .filter(project -> project.getName().equals(projectName))
+                .findFirst()
+                .orElseThrow()
+                .getTicketCount();
     }
 }
