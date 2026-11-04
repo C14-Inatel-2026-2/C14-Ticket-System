@@ -90,8 +90,41 @@
 
     </div>
 
+    <section class="ticket-activity">
+        <div class="activity-header">
+            <h2>Comentários e Histórico</h2>
+            <p>Acompanhe as atualizações deste ticket.</p>
+        </div>
+
+        <div id="ticket-timeline" class="ticket-timeline">
+            <p class="activity-empty">Carregando atividades...</p>
+        </div>
+
+        <form id="comment-form" class="comment-form">
+            <label for="comment-content">Adicionar comentário</label>
+
+            <textarea
+                id="comment-content"
+                name="content"
+                maxlength="5000"
+                rows="4"
+                required
+                placeholder="Escreva seu comentário..."
+            ></textarea>
+
+            <div class="comment-form-footer">
+                <p id="comment-feedback" role="status" aria-live="polite"></p>
+
+                <button type="submit" id="comment-submit">
+                    Publicar comentário
+                </button>
+            </div>
+        </form>
+    </section>
+
 </main>
 <script src="/js/project-navigation.js"></script>
+<script src="/js/ticket-comments.js"></script>
 <script>
     async function deleteTicket(ticketId){
         const confirmed = confirm(
