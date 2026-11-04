@@ -7,9 +7,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -35,6 +38,10 @@ public class Ticket {
 
     @Column(nullable = false, length = 100)
     private String project = "General";
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", insertable = false, updatable = false)
+    private Project projectReference;
 
     @Column(nullable = false, length = 100)
     private String assignee = "Unassigned";
@@ -130,6 +137,10 @@ public class Ticket {
 
     public void setProject(String project) {
     this.project = project;
+    }
+
+    public Project getProjectReference() {
+        return projectReference;
     }
 
     public String getAssignee() {
