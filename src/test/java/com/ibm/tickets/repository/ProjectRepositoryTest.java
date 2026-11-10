@@ -76,8 +76,14 @@ class ProjectRepositoryTest {
     void listsEveryPersistedProjectIncludingDuplicateNames() {
         Project first = repository.saveAndFlush(new Project("Catalog Duplicate", "First"));
         Project second = repository.saveAndFlush(new Project("Catalog Duplicate", "Second"));
-        insertTicket("First duplicate", "Catalog Duplicate");
-        insertTicket("Second duplicate", "Catalog Duplicate");
+        insertTicket("Legacy duplicate", "Catalog Duplicate");
+        entityManager.createNativeQuery("""
+                insert into tickets (title, description, project, assignee, project_id)
+                values ('Linked duplicate', 'Description', 'Catalog Duplicate', 'Owner', :projectId),
+                       ('Linked stale name', 'Description', 'Different legacy name', 'Owner', :projectId)
+                """)
+                .setParameter("projectId", second.getId())
+                .executeUpdate();
         entityManager.clear();
 
         List<ProjectCatalogView> duplicates = repository.findCatalog().stream()
@@ -87,7 +93,8 @@ class ProjectRepositoryTest {
         assertEquals(2, duplicates.size());
         assertEquals(List.of(first.getId(), second.getId()),
                 duplicates.stream().map(ProjectCatalogView::getId).toList());
-        assertTrue(duplicates.stream().allMatch(project -> project.getTicketCount() == 2));
+        assertEquals(List.of(1L, 2L),
+                duplicates.stream().map(ProjectCatalogView::getTicketCount).toList());
     }
 
     private void insertTicket(String title, String project) {
