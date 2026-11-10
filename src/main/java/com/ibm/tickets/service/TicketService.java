@@ -7,14 +7,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ibm.tickets.dto.TicketRequest;
 import com.ibm.tickets.dto.TicketResponse;
-import com.ibm.tickets.dto.TicketStatusHistoryResponse;
+
 import com.ibm.tickets.exception.TicketNotFoundException;
 import com.ibm.tickets.model.Ticket;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
-import com.ibm.tickets.model.TicketStatusHistory;
+
 import com.ibm.tickets.repository.TicketRepository;
-import com.ibm.tickets.repository.TicketStatusHistoryRepository;
+
 
 /**
  * Provides the business operations for tickets.
@@ -26,15 +26,12 @@ import com.ibm.tickets.repository.TicketStatusHistoryRepository;
 public class TicketService {
 
     private final TicketRepository ticketRepository;
-    private final TicketStatusHistoryRepository historyRepository;
     private final TicketActivityService activityService;
 
     public TicketService(
             TicketRepository ticketRepository,
-            TicketStatusHistoryRepository historyRepository,
             TicketActivityService activityService) {
         this.ticketRepository = ticketRepository;
-        this.historyRepository = historyRepository;
         this.activityService = activityService;
     }
 
@@ -81,17 +78,6 @@ public class TicketService {
         return TicketResponse.from(findEntityById(id));
     }
 
-    public List<TicketStatusHistoryResponse> findStatusHistory(
-            Long ticketId) {
-        findEntityById(ticketId);
-
-        return historyRepository
-                .findAllByTicketIdOrderByChangedAtDesc(ticketId)
-                .stream()
-                .map(TicketStatusHistoryResponse::from)
-                .toList();
-    }
-
     @Transactional
     public TicketResponse update(Long id, TicketRequest request, String author) {
         Ticket ticket = findEntityById(id);
@@ -126,7 +112,7 @@ public class TicketService {
     @Transactional
     public TicketResponse updateStatus(
             Long id,
-            TicketStatus status) {
+            TicketStatus status, String author) {
         Ticket ticket = findEntityById(id);
         TicketStatus previousStatus = ticket.getStatus();
 
@@ -138,12 +124,13 @@ public class TicketService {
 
         Ticket updatedTicket = ticketRepository.saveAndFlush(ticket);
 
-        TicketStatusHistory history = new TicketStatusHistory(
-                updatedTicket,
-                previousStatus,
-                status);
-
-        historyRepository.saveAndFlush(history);
+        activityService.record(
+            updatedTicket,
+            author,
+            "STATUS_CHANGED",
+            previousStatus.name(),
+            status.name()
+        );
 
         return TicketResponse.from(updatedTicket);
     }
