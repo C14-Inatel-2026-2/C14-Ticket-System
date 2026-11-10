@@ -2,7 +2,6 @@ package com.ibm.tickets.browser;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
@@ -25,7 +24,6 @@ class TicketListSecurityBrowserTest {
     private BrowserContext context;
     private Page page;
 
-    private final AtomicInteger alertCount = new AtomicInteger();
     private String lastApiUrl;
 
     @BeforeEach
