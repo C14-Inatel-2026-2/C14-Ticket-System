@@ -24,7 +24,6 @@ import com.ibm.tickets.model.Ticket;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
 import com.ibm.tickets.repository.TicketRepository;
-import com.ibm.tickets.repository.TicketStatusHistoryRepository;
 
 /**
  * Unit tests for TicketService.
@@ -36,9 +35,6 @@ class TicketServiceTest {
 
     @Mock
     private TicketRepository ticketRepository;
-
-    @Mock
-    private TicketStatusHistoryRepository historyRepository;
 
     @InjectMocks
     private TicketService ticketService;
@@ -205,7 +201,7 @@ class TicketServiceTest {
 
         TicketResponse response = ticketService.updateStatus(
                 1L,
-                TicketStatus.CLOSED);
+                TicketStatus.CLOSED, "admin");
 
         assertEquals(
                 TicketStatus.CLOSED,
