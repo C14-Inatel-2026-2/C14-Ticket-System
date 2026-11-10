@@ -190,14 +190,14 @@ Jenkins CI is used to automatically validate builds and tests.
 
 The ticket history system was refactored to provide a centralized and consistent mechanism for tracking changes throughout a ticket's lifecycle.
 
-**[PR #50](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/50) — Unified Activity History**
+**[PR #51](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/51) — Unified Activity History**
 - Introduced the `TicketActivity` entity, repository, and service.
 - Implemented activity tracking for status, priority, and assignee changes.
 - Integrated ticket comments into a unified chronological timeline.
 - Added the `GET /api/tickets/{id}/activities` endpoint.
 - Created Flyway migration V8 for the `ticket_activities` table.
 
-**[PR #52](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/52) — Legacy History Refactoring**
+**[PR #52](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/52) — Legacy Status History Refactoring**
 - Removed the legacy `TicketStatusHistory` entity, repository, and DTO.
 - Replaced legacy status history recording with `TicketActivityService`.
 - Removed the deprecated `GET /api/tickets/{id}/history` endpoint.
