@@ -9,11 +9,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -24,6 +26,7 @@ import com.ibm.tickets.model.Ticket;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
 import com.ibm.tickets.repository.TicketRepository;
+
 
 /**
  * Unit tests for TicketService.
@@ -164,7 +167,7 @@ class TicketServiceTest {
 
         TicketResponse response = ticketService.update(
                 1L,
-                request, eq("Admin"));
+                request, "Admin");
 
         assertAll(
                 () -> assertEquals(
@@ -185,6 +188,22 @@ class TicketServiceTest {
 
         verify(ticketRepository).findById(1L);
         verify(ticketRepository).saveAndFlush(ticket);
+
+        verify(activityService).record(
+                ticket,
+                "Admin",
+                "ASSIGNEE_CHANGED",
+                "Gabriel",
+                "Mariana"
+        );
+
+        verify(activityService).record(
+                ticket,
+                "Admin",
+                "PRIORITY_CHANGED",
+                "HIGH",
+                "MEDIUM"
+        );
     }
 
     @Test
@@ -209,6 +228,13 @@ class TicketServiceTest {
 
         verify(ticketRepository).findById(1L);
         verify(ticketRepository).saveAndFlush(ticket);
+        verify(activityService).record(
+            ticket,
+            "admin",
+            "STATUS_CHANGED",
+            "OPEN",
+            "CLOSED"
+        );
     }
 
     @Test
@@ -240,4 +266,29 @@ class TicketServiceTest {
 
         return ticket;
     }
+
+
+        @Test
+        void shouldNotRecordActivityWhenStatusDoesNotChange() {
+                Ticket ticket = createTicket(
+                        "Printer problem",
+                        TicketStatus.OPEN);
+
+                when(ticketRepository.findById(1L))
+                        .thenReturn(Optional.of(ticket));
+
+                TicketResponse response = ticketService.updateStatus(
+                        1L,
+                        TicketStatus.OPEN,
+                        "admin"
+                );
+
+                assertEquals(TicketStatus.OPEN, response.status());
+
+                verify(ticketRepository, never())
+                        .saveAndFlush(any(Ticket.class));
+
+                verifyNoInteractions(activityService);
+        }
+
 }
