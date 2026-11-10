@@ -27,12 +27,15 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
     private final TicketStatusHistoryRepository historyRepository;
+    private final TicketActivityService activityService;
 
     public TicketService(
             TicketRepository ticketRepository,
-            TicketStatusHistoryRepository historyRepository) {
+            TicketStatusHistoryRepository historyRepository,
+            TicketActivityService activityService) {
         this.ticketRepository = ticketRepository;
         this.historyRepository = historyRepository;
+        this.activityService = activityService;
     }
 
     @Transactional
@@ -90,8 +93,11 @@ public class TicketService {
     }
 
     @Transactional
-    public TicketResponse update(Long id, TicketRequest request) {
+    public TicketResponse update(Long id, TicketRequest request, String author) {
         Ticket ticket = findEntityById(id);
+
+        String oldAssignee = ticket.getAssignee();
+        String oldPriority = ticket.getPriority().name();
 
         ticket.setTitle(request.title());
         ticket.setDescription(request.description());
@@ -100,6 +106,20 @@ public class TicketService {
         ticket.setPriority(request.priority());
 
         Ticket updatedTicket = ticketRepository.saveAndFlush(ticket);
+
+
+        activityService.record(updatedTicket,
+                               author, 
+                               "ASSIGNEE_CHANGED",
+                               oldAssignee,
+                               updatedTicket.getAssignee());
+            
+        activityService.record(updatedTicket,
+                               author, 
+                               "PRIORITY_CHANGED",
+                               oldPriority,
+                               updatedTicket.getPriority().name());
+
         return TicketResponse.from(updatedTicket);
     }
 
