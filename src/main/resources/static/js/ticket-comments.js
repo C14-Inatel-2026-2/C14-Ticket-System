@@ -59,53 +59,71 @@ function createActivityElement(activity) {
     return item;
 }
 
+function translatePriority(priority) {
+    const labels = {
+        LOW: "Baixa",
+        MEDIUM: "Média",
+        HIGH: "Alta",
+        URGENT: "Crítica"
+    };
+
+    return labels[priority] || priority;
+}
+
+function describeActivity(activity) {
+    switch (activity.activityType) {
+        case "STATUS_CHANGED":
+            return `Alterou o status de ${
+                translateStatus(activity.oldValue)
+            } para ${translateStatus(activity.newValue)}.`;
+
+        case "PRIORITY_CHANGED":
+            return `Alterou a prioridade de ${
+                translatePriority(activity.oldValue)
+            } para ${translatePriority(activity.newValue)}.`;
+
+        case "ASSIGNEE_CHANGED":
+            return `Alterou o responsável de ${
+                activity.oldValue
+            } para ${activity.newValue}.`;
+
+        default:
+            return "Atualizou o ticket.";
+    }
+}
+
 async function loadActivities() {
     timeline.replaceChildren();
 
     try {
-        const [commentsResponse, historyResponse] = await Promise.all([
-            fetch(`/api/tickets/${currentTicketId}/comments`),
-            fetch(`/api/tickets/${currentTicketId}/history`)
-        ]);
-
-        if (!commentsResponse.ok || !historyResponse.ok) {
-            throw new Error("Não foi possível carregar as atividades.");
-        }
-
-        const comments = await commentsResponse.json();
-        const history = await historyResponse.json();
-
-        const activities = [
-            ...comments.map(comment => ({
-                type: "comment",
-                author: comment.author,
-                content: comment.content,
-                createdAt: comment.createdAt
-            })),
-
-            ...history.map(entry => ({
-                type: "history",
-                author: "Sistema",
-                content: `Alterou o status de ${
-                    translateStatus(entry.previousStatus)
-                } para ${translateStatus(entry.newStatus)}.`,
-                createdAt: entry.changedAt
-            }))
-        ];
-
-        activities.sort(
-            (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        const response = await fetch(
+            `/api/tickets/${currentTicketId}/activities`
         );
 
-        if (activities.length === 0) {
+        if (!response.ok) {
+            throw new Error("Erro ao carregar atividades");
+        }
+
+        const data = await response.json();
+
+        if (data.length === 0) {
             const empty = document.createElement("p");
             empty.className = "activity-empty";
-            empty.textContent = "Nenhuma atividade registrada neste ticket.";
+            empty.textContent = "Nenhuma atividade registrada.";
             timeline.appendChild(empty);
             return;
         }
 
-        activities.forEach(activity => {
+        data.forEach(entry => {
+            const activity = {
+                type: entry.type,
+                author: entry.author,
+                createdAt: entry.createdAt,
+                content: entry.type === "comment"
+                    ? entry.content
+                    : describeActivity(entry)
+            };
+
             timeline.appendChild(createActivityElement(activity));
         });
 
@@ -114,11 +132,13 @@ async function loadActivities() {
 
         const message = document.createElement("p");
         message.className = "activity-error";
-        message.textContent = "Erro ao carregar comentários e histórico.";
+        message.textContent = "Erro ao carregar atividades.";
 
         timeline.appendChild(message);
     }
 }
+
+loadActivities()
 
 commentForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -151,17 +171,20 @@ commentForm.addEventListener("submit", async (event) => {
         }
 
         commentInput.value = "";
-        commentFeedback.textContent = "Comentário publicado com sucesso!";
+        commentFeedback.textContent =
+            "Comentário publicado com sucesso!";
 
+        // Atualiza o histórico sem recarregar a página
         await loadActivities();
 
     } catch (error) {
-        console.error(error);
-        commentFeedback.textContent = "Não foi possível publicar o comentário.";
+        console.error("Erro ao publicar comentário:", error);
+
+        commentFeedback.textContent =
+            "Não foi possível publicar o comentário.";
+
     } finally {
         commentSubmit.disabled = false;
         commentSubmit.textContent = "Publicar comentário";
     }
 });
-
-loadActivities();

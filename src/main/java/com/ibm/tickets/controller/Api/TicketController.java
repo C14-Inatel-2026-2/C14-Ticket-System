@@ -23,6 +23,7 @@ import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
 import com.ibm.tickets.service.TicketService;
 
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 /**
@@ -71,8 +72,9 @@ public class TicketController {
     @PutMapping("/{id}")
     public TicketResponse update(
             @PathVariable Long id,
-            @Valid @RequestBody TicketRequest request) {
-        return ticketService.update(id, request);
+            @Valid @RequestBody TicketRequest request,
+        HttpSession session) {
+        return ticketService.update(id, request, getAuthor(session));
     }
 
     @PatchMapping("/{id}/status")
@@ -88,5 +90,14 @@ public class TicketController {
         ticketService.delete(id);
     }
 
-    
+    public String getAuthor(HttpSession session){
+        Object user = session.getAttribute("loggedUser");
+        if(user == null){
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.UNAUTHORIZED,
+                "User not authenticated"
+            );
+        }
+        return user.toString();
+    }
 }

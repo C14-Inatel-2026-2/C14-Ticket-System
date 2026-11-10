@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.verify;
@@ -40,6 +42,9 @@ class TicketServiceTest {
 
     @InjectMocks
     private TicketService ticketService;
+
+    @Mock
+    private TicketActivityService activityService;
 
     @Test
     void shouldCreateTicket() {
@@ -163,7 +168,7 @@ class TicketServiceTest {
 
         TicketResponse response = ticketService.update(
                 1L,
-                request);
+                request, eq("Admin"));
 
         assertAll(
                 () -> assertEquals(
