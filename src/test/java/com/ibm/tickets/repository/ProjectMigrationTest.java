@@ -50,7 +50,7 @@ class ProjectMigrationTest {
             }
 
             var result = Flyway.configure().dataSource(url, "sa", "").load().migrate();
-            assertEquals(1, result.migrationsExecuted);
+            assertEquals(2, result.migrationsExecuted);
 
             try (var statement = connection.createStatement();
                  var rows = statement.executeQuery("""
@@ -78,7 +78,7 @@ class ProjectMigrationTest {
                         """);
             }
             var result = Flyway.configure().dataSource(url, "sa", "").load().migrate();
-            assertEquals(3, result.migrationsExecuted);
+            assertEquals(4, result.migrationsExecuted);
             try (var statement = connection.createStatement();
                  var rows = statement.executeQuery("""
                          select t.title, t.description, t.project, t.assignee, p.name

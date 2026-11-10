@@ -26,6 +26,7 @@ class TicketHistoryServiceTest {
     private TicketStatusHistoryRepository historyRepository;
     private TicketService ticketService;
     private Ticket ticket;
+    private TicketActivityService activityService;
 
     @BeforeEach
     void setUp() {
@@ -34,7 +35,8 @@ class TicketHistoryServiceTest {
 
         ticketService = new TicketService(
                 ticketRepository,
-                historyRepository
+                historyRepository,
+                activityService
         );
 
         ticket = new Ticket(

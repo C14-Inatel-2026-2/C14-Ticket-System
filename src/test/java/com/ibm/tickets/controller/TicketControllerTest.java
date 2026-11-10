@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import com.ibm.tickets.controller.Api.TicketController;
 import com.ibm.tickets.dto.TicketRequest;
@@ -103,6 +104,7 @@ class TicketControllerTest {
 
     @MockitoBean
     private TicketService ticketService;
+    
 
     @BeforeEach
     void setUp() {
@@ -317,7 +319,7 @@ class TicketControllerTest {
 
         when(ticketService.update(
                 eq(1L),
-                any(TicketRequest.class)))
+                any(TicketRequest.class), eq("admin")))
                 .thenReturn(response);
 
         mockMvc.perform(put("/api/tickets/1")
@@ -332,6 +334,7 @@ class TicketControllerTest {
                           "priority": "URGENT"
                         }
                         """))
+                        .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.title")
