@@ -63,26 +63,10 @@ public class TicketActivityService {
         List<TicketActivityResponse> result = new ArrayList<>();
 
         activityRepository.findAllByTicketIdOrderByCreatedAtAsc(ticketId)
-            .forEach(a -> result.add(new TicketActivityResponse(
-                "history",
-                a.getAuthor(),
-                a.getActivityType(),
-                a.getOldValue(),
-                a.getNewValue(),
-                null,
-                a.getCreatedAt()
-            )));;
+            .forEach(activity -> result.add(TicketActivityResponse.fromActivity(activity)));
         
         commentRepository.findAllByTicketIdOrderByCreatedAtDesc(ticketId)
-            .forEach(c -> result.add(new TicketActivityResponse(
-                    "comment",
-                    c.getAuthor(),
-                    "COMMENT",
-                    null,
-                    null,
-                    c.getContent(),
-                    c.getCreatedAt()
-                )));
+            .forEach(comment -> result.add(TicketActivityResponse.fromComment(comment)));
 
         result.sort(Comparator.comparing(
            TicketActivityResponse::createdAt,
