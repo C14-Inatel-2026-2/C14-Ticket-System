@@ -1,5 +1,6 @@
 package com.ibm.tickets.repository;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,4 +27,9 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     List<Ticket> findAllByStatusAndPriorityOrderByCreatedAtDesc(
             TicketStatus status,
             TicketPriority priority);
+
+    long countByAssigneeUserId(Long userId);
+    long countByAssigneeUserIdAndStatusIn(Long userId, Collection<TicketStatus> statuses);
+
+    List<Ticket> findAllByAssigneeUserIdOrderByCreatedAtDesc(Long userId);
 }
