@@ -54,6 +54,12 @@ public class TicketService {
     }
 
     public List<TicketResponse> findAll(TicketStatus status, TicketPriority priority) {
+        return findTickets(status, priority).stream()
+                .map(TicketResponse::from)
+                .toList();
+    }
+
+    private List<Ticket> findTickets(TicketStatus status, TicketPriority priority) {
         List<Ticket> tickets;
 
         if (status == null && priority == null) {
@@ -69,9 +75,7 @@ public class TicketService {
                     .findAllByStatusAndPriorityOrderByCreatedAtDesc(status, priority);
         }
 
-        return tickets.stream()
-                .map(TicketResponse::from)
-                .toList();
+        return tickets;
     }
 
     public TicketResponse findById(Long id) {
