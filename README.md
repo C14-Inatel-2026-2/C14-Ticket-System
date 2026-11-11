@@ -186,6 +186,15 @@ Jenkins CI is used to automatically validate builds and tests.
 
 ## Refactorings
 
+### Gabriel Guimaraes — seleção dos filtros de tickets
+
+- **Smell** — `TicketService.findAll` misturava seleção de consultas e conversão para DTO.
+- **Refactoring aplicado** — Extract Method para `findTickets`.
+- **Por quê** — separar a escolha da consulta da apresentação da resposta, preservando os quatro cenários de filtro e a ordenação.
+- **PR** — [#54](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/54).
+- **Testes** — `mvn verify` com 97 testes na base e 99 após a extração, sem falhas. Os 10 testes de `TicketService` também passaram antes da extração.
+- **Pipeline** — o Jenkins da base estava em `error` no início. Conferir os checks do PR para comprovar a validação no CI.
+
 ### Unified Ticket Activity History — PR #51 and #52
 
 The ticket history system was refactored to provide a centralized and consistent mechanism for tracking changes throughout a ticket's lifecycle.
@@ -205,6 +214,15 @@ The ticket history system was refactored to provide a centralized and consistent
 - Updated and expanded automated tests to validate activity recording, chronological ordering, REST API responses, and database migration.
 
 This refactoring reduces code duplication, improves maintainability, and consolidates ticket activity tracking while preserving historical data.
+
+### Gabriel Guimaraes — mapeamento da timeline
+
+- **Smell** — `TicketActivityService` montava respostas com sete argumentos posicionais, constantes e campos nulos, misturando consulta e representação.
+- **Refactoring aplicado** — Move Function para `TicketActivityResponse.fromActivity` e `fromComment`.
+- **Por quê** — concentrar a conversão no DTO, seguindo `TicketResponse.from`, e deixar o serviço responsável por consultar e ordenar os eventos. O conteúdo da resposta e a ordenação foram preservados.
+- **PR** — [#55](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/55).
+- **Testes** — `mvn verify` com 97 testes na base e 100 após a mudança, sem falhas. Os três novos testes cobrem todos os campos, valores nulos, datas e texto literal.
+- **Pipeline** — o Jenkins da base estava em `error` no início. Conferir os checks do PR para comprovar a validação no CI.
 
 ## Contributors
 

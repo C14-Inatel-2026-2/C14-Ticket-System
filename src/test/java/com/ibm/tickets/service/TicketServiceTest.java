@@ -252,6 +252,32 @@ class TicketServiceTest {
         verify(ticketRepository).delete(ticket);
     }
 
+    @Test
+    void shouldFilterTicketsByPriorityAndPreserveRepositoryOrder() {
+        Ticket first = createTicket("First", TicketStatus.OPEN);
+        Ticket second = createTicket("Second", TicketStatus.CLOSED);
+        when(ticketRepository.findAllByPriorityOrderByCreatedAtDesc(TicketPriority.HIGH))
+                .thenReturn(List.of(first, second));
+
+        assertEquals(List.of(TicketResponse.from(first), TicketResponse.from(second)),
+                ticketService.findAll(null, TicketPriority.HIGH));
+        verify(ticketRepository).findAllByPriorityOrderByCreatedAtDesc(TicketPriority.HIGH);
+        org.mockito.Mockito.verifyNoMoreInteractions(ticketRepository);
+    }
+
+    @Test
+    void shouldCombineStatusAndPriorityFilters() {
+        Ticket ticket = createTicket("Combined", TicketStatus.IN_PROGRESS);
+        when(ticketRepository.findAllByStatusAndPriorityOrderByCreatedAtDesc(
+                TicketStatus.IN_PROGRESS, TicketPriority.HIGH)).thenReturn(List.of(ticket));
+
+        assertEquals(List.of(TicketResponse.from(ticket)),
+                ticketService.findAll(TicketStatus.IN_PROGRESS, TicketPriority.HIGH));
+        verify(ticketRepository).findAllByStatusAndPriorityOrderByCreatedAtDesc(
+                TicketStatus.IN_PROGRESS, TicketPriority.HIGH);
+        org.mockito.Mockito.verifyNoMoreInteractions(ticketRepository);
+    }
+
     private Ticket createTicket(
             String title,
             TicketStatus status) {
