@@ -12,6 +12,7 @@ import com.ibm.tickets.model.TicketStatus;
  * @param id ticket identifier
  * @param title ticket title
  * @param description ticket description
+ * @param projectId related project identifier
  * @param project related project
  * @param assignee person responsible for the ticket
  * @param status current ticket status
@@ -24,6 +25,7 @@ public record TicketResponse(
         Long id,
         String title,
         String description,
+        Long projectId,
         String project,
         String assignee,
         TicketStatus status,
@@ -36,6 +38,7 @@ public record TicketResponse(
                 ticket.getId(),
                 ticket.getTitle(),
                 ticket.getDescription(),
+                ticket.getProjectReference() != null ? ticket.getProjectReference().getId() : null,
                 ticket.getProject(),
                 ticket.getAssignee(),
                 ticket.getStatus(),
