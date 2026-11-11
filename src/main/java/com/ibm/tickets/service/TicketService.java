@@ -7,12 +7,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.ibm.tickets.dto.TicketRequest;
 import com.ibm.tickets.dto.TicketResponse;
-
 import com.ibm.tickets.exception.TicketNotFoundException;
+import com.ibm.tickets.model.Project;
 import com.ibm.tickets.model.Ticket;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
-
+import com.ibm.tickets.repository.ProjectRepository;
 import com.ibm.tickets.repository.TicketRepository;
 
 
@@ -27,12 +27,21 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
     private final TicketActivityService activityService;
+    private final ProjectRepository projectRepository;
 
     public TicketService(
             TicketRepository ticketRepository,
-            TicketActivityService activityService) {
+            TicketActivityService activityService,
+            ProjectRepository projectRepository) {
         this.ticketRepository = ticketRepository;
         this.activityService = activityService;
+        this.projectRepository = projectRepository;
+    }
+    
+    private Project findProjectById(Long projectId) {
+        return projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Project not found: " + projectId));
     }
 
     @Transactional
@@ -42,7 +51,7 @@ public class TicketService {
                 request.description(),
                 request.priority());
 
-        ticket.setProject(request.project());
+        ticket.setProjectReference(findProjectById(request.projectId()));
         ticket.setAssignee(request.assignee());
 
         Ticket savedTicket = ticketRepository.saveAndFlush(ticket);
@@ -54,25 +63,45 @@ public class TicketService {
     }
 
     public List<TicketResponse> findAll(TicketStatus status, TicketPriority priority) {
-        return findTickets(status, priority).stream()
+        return findTickets(null, status, priority).stream()
                 .map(TicketResponse::from)
                 .toList();
     }
 
-    private List<Ticket> findTickets(TicketStatus status, TicketPriority priority) {
+    public List<TicketResponse> findAll(Long projectId, TicketStatus status, TicketPriority priority) {
+        return findTickets(projectId, status, priority).stream()
+                .map(TicketResponse::from).toList();
+    }
+
+    private List<Ticket> findTickets(Long projectId, TicketStatus status, TicketPriority priority) {
         List<Ticket> tickets;
 
+        if (projectId == null) {
+            if (status == null && priority == null) {
+                return ticketRepository.findAllByOrderByCreatedAtDesc();
+            } else if (status != null && priority == null) {
+                return ticketRepository
+                    .findAllByStatusOrderByCreatedAtDesc(status);
+            } else if (status == null) {
+                return ticketRepository
+                    .findAllByPriorityOrderByCreatedAtDesc(priority);
+            } else {
+                return ticketRepository
+                    .findAllByStatusAndPriorityOrderByCreatedAtDesc(status, priority);
+            }
+        }
+
         if (status == null && priority == null) {
-            tickets = ticketRepository.findAllByOrderByCreatedAtDesc();
+            tickets = ticketRepository.findAllByProjectReference_IdOrderByCreatedAtDesc(projectId);
         } else if (status != null && priority == null) {
             tickets = ticketRepository
-                    .findAllByStatusOrderByCreatedAtDesc(status);
+                .findAllByProjectReference_IdAndStatusOrderByCreatedAtDesc(projectId, status);
         } else if (status == null) {
             tickets = ticketRepository
-                    .findAllByPriorityOrderByCreatedAtDesc(priority);
+                .findAllByProjectReference_IdAndPriorityOrderByCreatedAtDesc(projectId, priority);
         } else {
             tickets = ticketRepository
-                    .findAllByStatusAndPriorityOrderByCreatedAtDesc(status, priority);
+                .findAllByProjectReference_IdAndStatusAndPriorityOrderByCreatedAtDesc(projectId, status, priority);
         }
 
         return tickets;
@@ -91,7 +120,7 @@ public class TicketService {
 
         ticket.setTitle(request.title());
         ticket.setDescription(request.description());
-        ticket.setProject(request.project());
+        ticket.setProjectReference(findProjectById(request.projectId()));
         ticket.setAssignee(request.assignee());
         ticket.setPriority(request.priority());
 
