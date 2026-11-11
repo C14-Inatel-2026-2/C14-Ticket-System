@@ -2,19 +2,19 @@ package com.ibm.tickets.controller;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verifyNoInteractions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import java.util.stream.Stream;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -26,9 +26,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import com.ibm.tickets.controller.Api.TicketController;
 import com.ibm.tickets.dto.TicketRequest;
@@ -52,7 +52,7 @@ class TicketControllerTest {
                 Arguments.of("assignee", "\"   \""),
                 Arguments.of("assignee", "\"" + "a".repeat(101) + "\""),
                 Arguments.of("title", "\"" + "t".repeat(151) + "\""),
-                Arguments.of("project", "\"" + "p".repeat(101) + "\""),
+                Arguments.of("projectId", "null"),
                 Arguments.of("description", "\"   \""),
                 Arguments.of("priority", "null"));
     }
@@ -61,11 +61,13 @@ class TicketControllerTest {
     @MethodSource("invalidCreateFields")
     void rejectsInvalidCreateBeforeCallingService(String field, String jsonValue) throws Exception {
         String json = """
-                {"title":"Title","description":"Description","project":"Project",
+                {"title":"Title","description":"Description","projectId":1,
                  "assignee":"Owner","priority":"HIGH"}
                 """;
-        json = json.replaceAll("\"" + field + "\":\"[^\"]*\"",
-                java.util.regex.Matcher.quoteReplacement("\"" + field + "\":" + jsonValue));
+        json = json.replaceAll(
+            "\"" + field + "\":(?:\"[^\"]*\"|null|\\d+)",
+            java.util.regex.Matcher.quoteReplacement("\"" + field + "\":" + jsonValue));
+
         mockMvc.perform(post("/api/tickets").session(session)
                 .contentType(MediaType.APPLICATION_JSON).content(json))
                 .andExpect(status().isBadRequest())
@@ -77,7 +79,7 @@ class TicketControllerTest {
     void rejectsCreateWithoutSessionBeforeCallingService() throws Exception {
         mockMvc.perform(post("/api/tickets").contentType(MediaType.APPLICATION_JSON)
                 .content("""
-                        {"title":"Title","description":"Description","project":"Project",
+                        {"title":"Title","description":"Description","projectId":1,
                          "assignee":"Owner","priority":"HIGH"}
                         """))
                 .andExpect(status().isUnauthorized());
@@ -88,7 +90,7 @@ class TicketControllerTest {
     void rejectsUnknownPriorityBeforeCallingService() throws Exception {
         mockMvc.perform(post("/api/tickets").session(session)
                 .contentType(MediaType.APPLICATION_JSON).content("""
-                        {"title":"Title","description":"Description","project":"Project",
+                        {"title":"Title","description":"Description","projectId":1,
                          "assignee":"Owner","priority":"UNKNOWN"}
                         """))
                 .andExpect(status().isBadRequest());
@@ -121,6 +123,7 @@ class TicketControllerTest {
                 1L,
                 "Printer problem",
                 "The printer is not working",
+                1L,
                 "Internal Systems",
                 "Gabriel",
                 TicketStatus.OPEN,
@@ -138,7 +141,7 @@ class TicketControllerTest {
                         {
                           "title": "Printer problem",
                           "description": "The printer is not working",
-                          "project": "Internal Systems",
+                          "projectId": 1,
                           "assignee": "Gabriel",
                           "priority": "HIGH"
                         }
@@ -147,6 +150,8 @@ class TicketControllerTest {
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.title")
                         .value("Printer problem"))
+                .andExpect(jsonPath("$.projectId")
+                        .value(1))
                 .andExpect(jsonPath("$.project")
                         .value("Internal Systems"))
                 .andExpect(jsonPath("$.assignee")
@@ -166,7 +171,7 @@ class TicketControllerTest {
                         {
                           "title": "",
                           "description": "The printer is not working",
-                          "project": "Internal Systems",
+                          "projectId": 1,
                           "assignee": "Gabriel",
                           "priority": "HIGH"
                         }
@@ -191,6 +196,7 @@ class TicketControllerTest {
                 1L,
                 "Printer problem",
                 "The printer is not working",
+                1L,
                 "Internal Systems",
                 "Gabriel",
                 TicketStatus.OPEN,
@@ -198,7 +204,7 @@ class TicketControllerTest {
                 now,
                 now);
 
-        when(ticketService.findAll(null))
+        when(ticketService.findAll(null, null, null))
                 .thenReturn(List.of(response));
 
         mockMvc.perform(get("/api/tickets")
@@ -222,20 +228,21 @@ class TicketControllerTest {
                 1L,
                 "Printer problem",
                 "The printer is not working",
+                1L,
                 "Internal Systems",
                 "Gabriel",
                 TicketStatus.IN_PROGRESS,
                 TicketPriority.HIGH,
                 now,
                 now);
-
+        when(ticketService.findById(1L)).thenReturn(response);
         when(ticketService.updateStatus(
                 1L,
                 TicketStatus.IN_PROGRESS,
                 "admin"))
                 .thenReturn(response);
 
-        mockMvc.perform(patch("/api/tickets/1/status")
+        mockMvc.perform(patch("/api/tickets/1/status?projectId=1")
                 .session(session)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
@@ -257,7 +264,7 @@ class TicketControllerTest {
         when(ticketService.findById(99L))
                 .thenThrow(new TicketNotFoundException(99L));
 
-        mockMvc.perform(get("/api/tickets/99")
+        mockMvc.perform(get("/api/tickets/99?projectId=1")
                 .session(session))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.title")
@@ -275,6 +282,7 @@ class TicketControllerTest {
                 1L,
                 "Printer problem",
                 "The printer is not working",
+                1L,
                 "Internal Systems",
                 "Gabriel",
                 TicketStatus.OPEN,
@@ -285,7 +293,7 @@ class TicketControllerTest {
         when(ticketService.findById(1L))
                 .thenReturn(response);
 
-        mockMvc.perform(get("/api/tickets/1")
+        mockMvc.perform(get("/api/tickets/1?projectId=1")
                 .session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
@@ -301,6 +309,31 @@ class TicketControllerTest {
                         .value("HIGH"));
     }
 
+	@Test
+	void shouldReturnNotFoundWhenTicketBelongsToAnotherProject()throws Exception {
+		OffsetDateTime now = OffsetDateTime.parse("2026-09-18T15:00:00Z");
+
+		TicketResponse response = new TicketResponse(
+			1L,
+			"Printer problem",
+			"The printer is not working",
+			2L,
+			"OpenLift",
+			"Gabriel",
+			TicketStatus.OPEN,
+			TicketPriority.HIGH,
+			now,
+			now);
+
+		when(ticketService.findById(1L)).thenReturn(response);
+
+		mockMvc.perform(get("/api/tickets/1?projectId=1")
+				.session(session))
+				.andExpect(status().isNotFound());
+
+		verify(ticketService).findById(1L);
+	}
+
     @Test
     void shouldUpdateTicket() throws Exception {
         OffsetDateTime now = OffsetDateTime.parse(
@@ -310,26 +343,27 @@ class TicketControllerTest {
                 1L,
                 "Updated printer problem",
                 "The printer continues to fail",
+                1L,
                 "Internal Systems",
                 "Gabriel",
                 TicketStatus.OPEN,
                 TicketPriority.URGENT,
                 now,
                 now);
-
+        when(ticketService.findById(1L)).thenReturn(response);
         when(ticketService.update(
                 eq(1L),
                 any(TicketRequest.class), eq("admin")))
                 .thenReturn(response);
 
-        mockMvc.perform(put("/api/tickets/1")
+        mockMvc.perform(put("/api/tickets/1?projectId=1")
                 .session(session)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
                           "title": "Updated printer problem",
                           "description": "The printer continues to fail",
-                          "project": "Internal Systems",
+                          "projectId": 1,
                           "assignee": "Gabriel",
                           "priority": "URGENT"
                         }
@@ -347,16 +381,147 @@ class TicketControllerTest {
 
     @Test
     void shouldDeleteTicket() throws Exception {
-        mockMvc.perform(delete("/api/tickets/1")
+		OffsetDateTime now = OffsetDateTime.parse("2026-09-18T15:00:00Z");
+    	TicketResponse response = new TicketResponse(
+            1L,
+            "Printer problem",
+            "The printer is not working",
+            1L,
+            "Internal Systems",
+            "Gabriel",
+            TicketStatus.OPEN,
+            TicketPriority.HIGH,
+            now,
+            now);
+
+    	when(ticketService.findById(1L)).thenReturn(response);
+
+        mockMvc.perform(delete("/api/tickets/1?projectId=1")
                 .session(session))
                 .andExpect(status().isNoContent());
 
         verify(ticketService).delete(1L);
     }
 
+	@Test
+	void shouldNotFindTicketFromAnotherProject() throws Exception {
+		OffsetDateTime now = OffsetDateTime.parse("2026-09-18T15:00:00Z");
+
+		TicketResponse response = new TicketResponse(
+			1L,
+			"Printer problem",
+			"The printer is not working",
+			2L,
+			"OpenLift",
+			"Gabriel",
+			TicketStatus.OPEN,
+			TicketPriority.HIGH,
+			now,
+			now);
+
+		when(ticketService.findById(1L)).thenReturn(response);
+
+		mockMvc.perform(get("/api/tickets/1?projectId=1")
+				.session(session))
+				.andExpect(status().isNotFound());
+
+		verify(ticketService).findById(1L);
+	}
+
+	@Test
+	void shouldNotUpdateTicketFromAnotherProject() throws Exception {
+		OffsetDateTime now = OffsetDateTime.parse("2026-09-18T15:00:00Z");
+
+		TicketResponse response = new TicketResponse(
+			1L,
+			"Printer problem",
+			"The printer is not working",
+			2L,
+			"OpenLift",
+			"Gabriel",
+			TicketStatus.OPEN,
+			TicketPriority.HIGH,
+			now,
+			now);
+
+		when(ticketService.findById(1L)).thenReturn(response);
+
+		mockMvc.perform(put("/api/tickets/1?projectId=1")
+				.session(session)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+						{
+							"title": "Updated printer problem",
+							"description": "Updated description",
+							"projectId": 1,
+							"assignee": "Gabriel",
+							"priority": "HIGH"
+						}
+						"""))
+				.andExpect(status().isNotFound());
+
+		verify(ticketService).findById(1L);
+	}
+
+	@Test
+	void shouldNotChangeStatusOfTicketFromAnotherProject()throws Exception {
+		OffsetDateTime now = OffsetDateTime.parse("2026-09-18T15:00:00Z");
+
+		TicketResponse response = new TicketResponse(
+			1L,
+			"Printer problem",
+			"The printer is not working",
+			2L,
+			"OpenLift",
+			"Gabriel",
+			TicketStatus.OPEN,
+			TicketPriority.HIGH,
+			now,
+			now);
+
+		when(ticketService.findById(1L)).thenReturn(response);
+
+		mockMvc.perform(patch("/api/tickets/1/status?projectId=1")
+				.session(session)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+						{
+							"status": "IN_PROGRESS"
+						}
+						"""))
+				.andExpect(status().isNotFound());
+
+		verify(ticketService).findById(1L);
+	}
+
+	@Test
+	void shouldNotDeleteTicketFromAnotherProject() throws Exception {
+		OffsetDateTime now = OffsetDateTime.parse("2026-09-18T15:00:00Z");
+
+		TicketResponse response = new TicketResponse(
+			1L,
+			"Printer problem",
+			"The printer is not working",
+			2L,
+			"OpenLift",
+			"Gabriel",
+			TicketStatus.OPEN,
+			TicketPriority.HIGH,
+			now,
+			now);
+
+		when(ticketService.findById(1L)).thenReturn(response);
+
+		mockMvc.perform(delete("/api/tickets/1?projectId=1")
+				.session(session))
+				.andExpect(status().isNotFound());
+
+		verify(ticketService).findById(1L);
+	}
+
+
     @Test
-    void shouldReturnBadRequestWhenStatusIsInvalid()
-            throws Exception {
+    void shouldReturnBadRequestWhenStatusIsInvalid()throws Exception {
 
         mockMvc.perform(patch("/api/tickets/1/status")
                 .session(session)
