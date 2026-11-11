@@ -67,6 +67,17 @@
                 <option value="URGENT">Crítica</option>
             </select>
         </div>
+        <div class="filter-container">
+            <label for="sort-filter">Ordenar por</label>
+
+            <select id="sort-filter">
+                <option value="created-desc">Data de criação (Mais recentes primeiro)</option>
+                <option value="created-asc">Data de criação (Mais antigos primeiro)</option>
+                <option value="priority-desc">Prioridade (Mais alta primeiro)</option>
+                <option value="priority-asc">Prioridade (Mais baixa primeiro)</option>
+            </select>
+        </div>
+
         <div class="ticket-container">
 
             <table>
@@ -115,12 +126,53 @@
             }
 
             const tickets = await response.json();
+            const sortedTickets = sortTickets(tickets, sortFilter.value);
 
-            renderTickets(tickets);
+            renderTickets(sortedTickets);
 
         } catch (error) {
             console.error("Erro ao carregar tickets:", error);
         }
+    }
+
+    function sortTickets(tickets, sortOption){
+        const priorityOrder = {
+            URGENT: 4,
+            HIGH: 3,
+            MEDIUM: 2,
+            LOW: 1
+        };
+
+        return [...tickets].sort((a, b) => {
+            switch(sortOption){
+                case "created-desc":
+                case "created-asc": {
+                    const dateA = Date.parse(a.createdAt);
+                    const dateB = Date.parse(b.createdAt);
+
+                    const validA = Number.isFinite(dateA);
+                    const validB = Number.isFinite(dateB);
+
+                    if (!validA && !validB)
+                        return 0;
+                    if (!validA)
+                        return 1;
+                    if (!validB)
+                        return -1;
+
+                    return sortOption === "created-desc" ? dateB - dateA : dateA - dateB;
+                }
+
+                case "priority-desc":
+                    return (priorityOrder[b.priority] ?? 0) - (priorityOrder[a.priority] ?? 0);
+
+                case "priority-asc":
+                    return (priorityOrder[a.priority] ?? 0) - (priorityOrder[b.priority] ?? 0);
+
+                default:
+                    return 0;
+            }
+        });
     }
 
     function renderTickets(tickets) {
@@ -288,6 +340,9 @@
     const priorityFilter =
         document.getElementById("priority-filter");
 
+    const sortFilter =
+        document.getElementById("sort-filter");
+
     function applyFilters() {
         loadTickets(
             statusFilter.value,
@@ -297,6 +352,7 @@
 
     statusFilter.addEventListener("change", applyFilters);
     priorityFilter.addEventListener("change", applyFilters);
+    sortFilter.addEventListener("change", applyFilters);
     document.getElementById("new-ticket-button").href =
     getNewTicketUrl();
 
