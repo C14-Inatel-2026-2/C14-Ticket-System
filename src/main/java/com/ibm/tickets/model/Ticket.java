@@ -46,7 +46,9 @@ public class Ticket {
     @Column(nullable = false, length = 100)
     private String assignee = "Unassigned";
 
-    
+    @ManyToOne (fetch = FetchType.LAZY)
+    @JoinColumn (name = "assignee_user_id")
+    private User assigneeUser;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
@@ -149,5 +151,13 @@ public class Ticket {
 
     public void setAssignee(String assignee) {
     this.assignee = assignee;
+    }
+
+    public User getUser(){
+        return this.assigneeUser;
+    }
+
+    public void setAssigneeUser(User user){
+        this.assigneeUser = user;
     }
 }
