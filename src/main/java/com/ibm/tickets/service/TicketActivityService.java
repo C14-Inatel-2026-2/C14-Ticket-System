@@ -16,7 +16,6 @@ import com.ibm.tickets.model.Ticket;
 import com.ibm.tickets.model.TicketActivity;
 import com.ibm.tickets.repository.TicketActivityRepository;
 import com.ibm.tickets.repository.TicketRepository;
-import com.ibm.tickets.repository.TicketStatusHistoryRepository;
 
 /**
  * @author Rodrigo Fraga da Costa
@@ -27,17 +26,14 @@ public class TicketActivityService {
     
     private final TicketActivityRepository activityRepository;
     private final TicketCommentRepository commentRepository;
-    private final TicketStatusHistoryRepository historyRepository;
     private final TicketRepository ticketRepository;
 
     public TicketActivityService(
             TicketActivityRepository activityRepository,
             TicketCommentRepository commentRepository,
-            TicketStatusHistoryRepository historyRepository,
             TicketRepository ticketRepository) {
         this.activityRepository = activityRepository;
         this.commentRepository = commentRepository;
-        this.historyRepository = historyRepository;
         this.ticketRepository = ticketRepository;
     }
 
@@ -86,17 +82,6 @@ public class TicketActivityService {
                     null,
                     c.getContent(),
                     c.getCreatedAt()
-                )));
-
-        historyRepository.findAllByTicketIdOrderByChangedAtDesc(ticketId)
-                .forEach(h -> result.add(new TicketActivityResponse(
-                        "history",
-                        "Sistema",
-                        "STATUS_CHANGED",
-                        h.getPreviousStatus().name(),
-                        h.getNewStatus().name(),
-                        null,
-                        h.getChangedAt()
                 )));
 
         result.sort(Comparator.comparing(
