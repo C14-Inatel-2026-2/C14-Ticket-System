@@ -45,6 +45,33 @@
                     th:text="${ticket.priority.toString() == 'LOW' ? 'Baixa prioridade' : (ticket.priority.toString() == 'MEDIUM' ? 'Média prioridade' : (ticket.priority.toString() == 'HIGH' ? 'Alta prioridade' : (ticket.priority.toString() == 'URGENT' ? 'Crítica' : ticket.priority)))}">
                 </span>
             </div>
+            <div class="status-control">
+                <label for="status-select">Alterar status</label>
+
+                <select id="status-select" th:attr="data-current-status=${ticket.status}">
+                    <option value="OPEN"
+                        th:selected="${ticket.status.toString() == 'OPEN'}">
+                        Aberto
+                    </option>
+
+                    <option value="IN_PROGRESS"
+                        th:selected="${ticket.status.toString() == 'IN_PROGRESS'}">
+                        Em andamento
+                    </option>
+
+                    <option value="RESOLVED"
+                        th:selected="${ticket.status.toString() == 'RESOLVED'}">
+                        Resolvido
+                    </option>
+
+                    <option value="CLOSED"
+                        th:selected="${ticket.status.toString() == 'CLOSED'}">
+                        Encerrado
+                    </option>
+                </select>
+
+                <p id="status-feedback" role="status" aria-live="polite"></p>
+            </div>
         </div>
 
         <div class="details-actions">
