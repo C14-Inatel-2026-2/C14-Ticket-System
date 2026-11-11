@@ -40,7 +40,7 @@ public class Ticket {
     private String project = "General";
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", insertable = false, updatable = false)
+    @JoinColumn(name = "project_id")
     private Project projectReference;
 
     @Column(nullable = false, length = 100)
@@ -143,6 +143,14 @@ public class Ticket {
 
     public Project getProjectReference() {
         return projectReference;
+    }
+
+    public void setProjectReference(Project projectReference) {
+        this.projectReference = projectReference;
+
+        if (projectReference != null) {
+            this.project = projectReference.getName();
+        }
     }
 
     public String getAssignee() {
