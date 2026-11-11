@@ -15,7 +15,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TicketSortingBrowserTest {
@@ -185,10 +184,5 @@ class TicketSortingBrowserTest {
         assertEquals(ORIGIN + "/api/tickets?status=OPEN", lastApiUrl);
 
         assertEquals(List.of("2", "3", "4", "1"), getTicketIds());
-    }
-
-    @Test
-    void keepsInvalidDatesAtTheEndWhenSortingByCreationDate() {
-        // Este cenário será implementado com uma resposta específica da API.
     }
 }
