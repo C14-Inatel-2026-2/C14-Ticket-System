@@ -140,26 +140,6 @@
         form.querySelector('[aria-invalid="true"]')?.focus();
     }
 
-    async function getCurrentProjectName() {
-        const response = await fetch("/api/projects");
-
-        if (!response.ok) {
-            throw new Error("Erro ao carregar projetos");
-        }
-
-        const projects = await response.json();
-
-        const project = projects.find(
-            item => String(item.id) === getProjectId()
-        );
-
-        if (!project) {
-            throw new Error("Projeto não encontrado");
-        }
-
-        return project.name;
-    }
-
     for (const field of fields) {
         const clear = () => fieldError(field, '');
         document.getElementById(field.id).addEventListener('input', clear);
@@ -188,7 +168,7 @@
         let response;
 
         try {
-            ticket.project = await getCurrentProjectName();
+            ticket.projectId = Number(getProjectId());
 
             response = await fetch('/api/tickets', {
                 method: 'POST',
