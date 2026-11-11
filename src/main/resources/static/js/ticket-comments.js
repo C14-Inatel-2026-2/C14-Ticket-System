@@ -3,6 +3,9 @@ const commentForm = document.getElementById("comment-form");
 const commentInput = document.getElementById("comment-content");
 const commentFeedback = document.getElementById("comment-feedback");
 const commentSubmit = document.getElementById("comment-submit");
+const statusSelect = document.getElementById("status-select");
+const statusFeedback = document.getElementById("status-feedback");
+const statusBadge = document.querySelector(".details-badges .status");
 
 const currentTicketId = window.location.pathname
     .split("/")
@@ -25,6 +28,69 @@ function translateStatus(status) {
     };
 
     return labels[status] || status;
+}
+
+function getStatusClass(status) {
+    const classes = {
+        OPEN: "open",
+        IN_PROGRESS: "progress",
+        RESOLVED: "resolved",
+        CLOSED: "closed"
+    };
+
+    return classes[status] || "";
+}
+
+function updateStatusBadge(status) {
+    statusBadge.className = `status ${getStatusClass(status)}`;
+    statusBadge.textContent = translateStatus(status);
+}
+
+async function updateTicketStatus() {
+    const previousStatus = statusSelect.dataset.currentStatus;
+    const newStatus = statusSelect.value;
+
+    if (previousStatus === newStatus) {
+        return;
+    }
+
+    statusSelect.disabled = true;
+    statusFeedback.textContent = "Atualizando status...";
+
+    try {
+        const response = await fetch(
+            `/api/tickets/${currentTicketId}/status`,
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ status: newStatus })
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`Erro HTTP ${response.status}`);
+        }
+
+        statusSelect.dataset.currentStatus = newStatus;
+
+        updateStatusBadge(newStatus);
+        statusFeedback.textContent = "Status atualizado com sucesso!";
+
+        await loadActivities();
+
+    } catch (error) {
+        console.error("Erro ao atualizar status:", error);
+
+        statusSelect.value = previousStatus;
+
+        statusFeedback.textContent =
+            "Não foi possível atualizar o status.";
+
+    } finally {
+        statusSelect.disabled = false;
+    }
 }
 
 function createActivityElement(activity) {
@@ -188,3 +254,5 @@ commentForm.addEventListener("submit", async (event) => {
         commentSubmit.textContent = "Publicar comentário";
     }
 });
+
+statusSelect.addEventListener("change", updateTicketStatus);

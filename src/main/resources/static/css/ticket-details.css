@@ -32,6 +32,50 @@
     gap: 8px;
 }
 
+/* CONTROLE DE STATUS */
+
+.status-control {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.status-control label {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+#status-select {
+    min-width: 190px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+#status-select:focus-visible {
+    outline: 3px solid #93c5fd;
+    outline-offset: 3px;
+}
+
+#status-select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#status-feedback {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+}
+
 /* BOTOES DE ACAO*/
 
 .details-actions {
