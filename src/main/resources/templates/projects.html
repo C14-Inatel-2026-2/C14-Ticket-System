@@ -1,6 +1,7 @@
 
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -10,6 +11,7 @@
 
     <link rel="stylesheet" href="/css/projects.css">
 </head>
+
 <body>
 
 <header class="navbar">
@@ -18,6 +20,14 @@
     <nav>
         <a href="/project" class="active">Projetos</a>
         <a href="/users/me">Perfil</a>
+
+        <form action="/logout"
+              method="post"
+              class="logout-form">
+            <button type="submit" class="logout-button">
+                Sair
+            </button>
+        </form>
     </nav>
 </header>
 
@@ -26,8 +36,14 @@
     <section class="page-header">
         <div>
             <h1>Projetos</h1>
-            <p>Selecione um projeto para visualizar seus tickets.</p>
+            <p>
+                Selecione um projeto para visualizar seus tickets.
+            </p>
         </div>
+
+        <a href="/project/new" class="create-project-button">
+            + Novo projeto
+        </a>
     </section>
 
     <section class="toolbar">
@@ -37,6 +53,7 @@
             placeholder="Buscar projeto..."
             aria-label="Buscar projeto"
         >
+
         <span id="project-count"></span>
     </section>
 
@@ -47,90 +64,283 @@
 </main>
 
 <script>
-    const grid = document.getElementById("projects-grid");
-    const search = document.getElementById("project-search");
-    const count = document.getElementById("project-count");
+"use strict";
 
-    let projects = [];
+const grid = document.getElementById("projects-grid");
+const search = document.getElementById("project-search");
+const count = document.getElementById("project-count");
 
-    async function loadProjects() {
-        try {
-            const response = await fetch("/api/projects");
+let projects = [];
 
-            if (!response.ok) {
-                throw new Error("Erro ao carregar projetos");
-            }
+function showMessage(message) {
+    grid.replaceChildren();
 
-            projects = await response.json();
-            renderProjects(projects);
+    const element = document.createElement("p");
+    element.className = "message";
+    element.textContent = message;
 
-        } catch (error) {
-            grid.textContent = "";
+    grid.appendChild(element);
+}
 
-            const message = document.createElement("p");
-            message.className = "message";
-            message.textContent = "Não foi possível carregar os projetos.";
+async function loadProjects() {
+    try {
+        const response = await fetch("/api/projects");
 
-            grid.appendChild(message);
+        if (!response.ok) {
+            throw new Error(
+                `Erro HTTP ${response.status}`
+            );
         }
+
+        projects = await response.json();
+
+        filterProjects();
+
+    } catch (error) {
+        console.error("Erro ao carregar projetos:", error);
+
+        showMessage(
+            "Não foi possível carregar os projetos."
+        );
+
+        count.textContent = "";
+    }
+}
+
+function filterProjects() {
+    const term = search.value
+        .trim()
+        .toLocaleLowerCase("pt-BR");
+
+    const filtered = projects.filter(project => {
+        const name = (project.name || "")
+            .toLocaleLowerCase("pt-BR");
+
+        const description = (project.description || "")
+            .toLocaleLowerCase("pt-BR");
+
+        return name.includes(term)
+            || description.includes(term);
+    });
+
+    renderProjects(filtered);
+}
+
+function createProjectMenu(project) {
+    const menu = document.createElement("details");
+    menu.className = "project-card-menu";
+
+    // Three-dots trigger
+    const trigger = document.createElement("summary");
+    trigger.className = "menu-trigger";
+    trigger.textContent = "⋯";
+
+    trigger.setAttribute(
+        "aria-label",
+        `Opções do projeto ${project.name}`
+    );
+
+    trigger.setAttribute(
+        "title",
+        "Opções do projeto"
+    );
+
+    // Menu content
+    const options = document.createElement("div");
+    options.className = "project-menu-options";
+
+    // Edit option
+    const editLink = document.createElement("a");
+    editLink.className = "project-menu-item";
+    editLink.href = `/project/${project.id}/edit`;
+    editLink.textContent = "Editar projeto";
+
+    // Delete option
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+
+    deleteButton.className =
+        "project-menu-item delete-project-button";
+
+    deleteButton.textContent = "Excluir projeto";
+
+    deleteButton.addEventListener("click", async event => {
+        event.stopPropagation();
+
+        menu.open = false;
+
+        await deleteProject(project);
+    });
+
+    options.append(editLink, deleteButton);
+    menu.append(trigger, options);
+
+    return menu;
+}
+
+function renderProjects(items) {
+    grid.replaceChildren();
+
+    count.textContent = `${items.length} projeto(s)`;
+
+    if (items.length === 0) {
+        showMessage("Nenhum projeto encontrado.");
+        return;
     }
 
-    function renderProjects(items) {
-        grid.replaceChildren();
-        count.textContent = `${items.length} projeto(s)`;
+    items.forEach(project => {
+        const card = document.createElement("article");
+        card.className = "project-card";
 
-        if (items.length === 0) {
-            const message = document.createElement("p");
-            message.className = "message";
-            message.textContent = "Nenhum projeto encontrado.";
-            grid.appendChild(message);
+        // Main project link
+        const link = document.createElement("a");
+        link.className = "project-card-content";
+        link.href = `/project/${project.id}/tickets`;
+
+        const icon = document.createElement("div");
+        icon.className = "project-icon";
+        icon.textContent = "📁";
+
+        const title = document.createElement("h2");
+        title.textContent = project.name;
+
+        const description = document.createElement("p");
+        description.className = "description";
+
+        description.textContent =
+            project.description || "Sem descrição.";
+
+        const footer = document.createElement("div");
+        footer.className = "project-footer";
+
+        const tickets = document.createElement("span");
+
+        tickets.textContent =
+            `${project.ticketCount ?? 0} tickets`;
+
+        const arrow = document.createElement("span");
+        arrow.textContent = "Ver tickets →";
+
+        footer.append(tickets, arrow);
+
+        link.append(
+            icon,
+            title,
+            description,
+            footer
+        );
+
+        // Menu is NOT inside the main link
+        const menu = createProjectMenu(project);
+
+        card.append(link, menu);
+        grid.appendChild(card);
+    });
+}
+
+async function deleteProject(project) {
+    const confirmed = window.confirm(
+        `Deseja realmente excluir o projeto "${project.name}"?\n\n` +
+        "Essa ação não poderá ser desfeita."
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `/api/projects/${project.id}`,
+            {
+                method: "DELETE",
+                headers: {
+                    "Accept": "application/json"
+                }
+            }
+        );
+
+        if (response.status === 409) {
+            window.alert(
+                "Não é possível excluir este projeto " +
+                "porque ele possui tickets associados."
+            );
             return;
         }
 
-        items.forEach(project => {
-            const card = document.createElement("a");
-            card.className = "project-card";
-            card.href = `/project/${project.id}/tickets`;
+        if (response.status === 404) {
+            window.alert(
+                "Este projeto não existe mais."
+            );
 
-            const icon = document.createElement("div");
-            icon.className = "project-icon";
-            icon.textContent = "📁";
+            await loadProjects();
+            return;
+        }
 
-            const title = document.createElement("h2");
-            title.textContent = project.name;
+        if (!response.ok) {
+            const body = await response.text();
 
-            const description = document.createElement("p");
-            description.className = "description";
-            description.textContent =
-                project.description || "Sem descrição.";
+            console.error("Erro ao excluir projeto:", {
+                status: response.status,
+                body
+            });
 
-            const footer = document.createElement("div");
-            footer.className = "project-footer";
+            throw new Error(
+                `Erro HTTP ${response.status}`
+            );
+        }
 
-            const tickets = document.createElement("span");
-            tickets.textContent =
-                `${project.ticketCount ?? 0} tickets`;
-
-            const arrow = document.createElement("span");
-            arrow.textContent = "Ver tickets →";
-
-            footer.append(tickets, arrow);
-            card.append(icon, title, description, footer);
-            grid.appendChild(card);
-        });
-    }
-
-    search.addEventListener("input", () => {
-        const term = search.value.toLowerCase().trim();
-
-        const filtered = projects.filter(project =>
-            project.name.toLowerCase().includes(term)
+        // Remove project from local list
+        projects = projects.filter(
+            item => item.id !== project.id
         );
 
-        renderProjects(filtered);
-    });
+        filterProjects();
 
-    loadProjects();
+    } catch (error) {
+        console.error("Erro ao excluir projeto:", error);
+
+        window.alert(
+            "Não foi possível excluir o projeto. " +
+            "Tente novamente."
+        );
+    }
+}
+
+// Project search
+search.addEventListener("input", filterProjects);
+
+// Close open menus when clicking outside
+document.addEventListener("click", event => {
+    document.querySelectorAll(
+        ".project-card-menu[open]"
+    ).forEach(menu => {
+        if (!menu.contains(event.target)) {
+            menu.open = false;
+        }
+    });
+});
+
+// Keep only one menu open at a time
+document.addEventListener("toggle", event => {
+    const currentMenu = event.target;
+
+    if (
+        !currentMenu.matches?.(".project-card-menu")
+        || !currentMenu.open
+    ) {
+        return;
+    }
+
+    document.querySelectorAll(
+        ".project-card-menu[open]"
+    ).forEach(menu => {
+        if (menu !== currentMenu) {
+            menu.open = false;
+        }
+    });
+}, true);
+
+loadProjects();
 </script>
 
 </body>
