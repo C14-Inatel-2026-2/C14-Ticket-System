@@ -8,13 +8,10 @@ import com.ibm.tickets.repository.ProjectRepository;
 import com.ibm.tickets.repository.TicketRepository;
 import com.ibm.tickets.repository.UserRepository;
 
-import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import org.flywaydb.core.internal.jdbc.JdbcTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
