@@ -238,7 +238,7 @@ This refactoring reduces code duplication, improves maintainability, and consoli
 - **Refactoring Applied** — Extract Method: extracted the common lookup logic into the private method `ProjectService.findProjectById`.
 - **Why** — eliminate duplicated code and centralize the responsibility for retrieving projects and handling not-found scenarios, improving maintainability and ensuring consistent behavior across service methods.
 - **Tests** — `mvn verify` with 121 tests executed, 0 failures, 0 errors, and 0 skipped.
-- **PR** — To be added.
+- **PR** — [#64: Centralize project lookup](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/64).
 
 ## Contributors
 
