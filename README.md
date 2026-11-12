@@ -224,6 +224,22 @@ This refactoring reduces code duplication, improves maintainability, and consoli
 - **Testes** — `mvn verify` com 97 testes na base e 100 após a mudança, sem falhas. Os três novos testes cobrem todos os campos, valores nulos, datas e texto literal.
 - **Pipeline** — o Jenkins da base estava em `error` no início. Conferir os checks do PR para comprovar a validação no CI.
 
+### Mariana Barude Pina — Centralizing Ticket-Project Validation
+
+- **Smell** — Duplicate Code: `TicketController.validateTicketProject` and `TicketWebController.findTicketInProject` implemented the same validation logic to verify whether a ticket belonged to the requested project.
+- **Refactoring Applied** — Move Method: centralized the validation logic in `TicketService.findByIdInProject`.
+- **Why** — eliminate duplicated business logic across controllers by moving the responsibility to the service layer, ensuring consistent behavior for both REST and Web interfaces. A dedicated `TicketNotInProjectException` was introduced to represent tickets that do not belong to the requested project.
+- **Tests** — `mvn verify` with 118 tests executed, 0 failures, 0 errors, and 0 skipped.
+- **PR** — [#63: Centralize ticket project validation](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/63).
+
+### Mariana Barude Pina — Centralizing Project Lookup
+
+- **Smell** — Duplicate Code: `ProjectService.update`, `ProjectService.delete`, and `ProjectService.getMemberIds` contained duplicated logic for retrieving a project by ID and handling cases where the project does not exist.
+- **Refactoring Applied** — Extract Method: extracted the common lookup logic into the private method `ProjectService.findProjectById`.
+- **Why** — eliminate duplicated code and centralize the responsibility for retrieving projects and handling not-found scenarios, improving maintainability and ensuring consistent behavior across service methods.
+- **Tests** — `mvn verify` with 121 tests executed, 0 failures, 0 errors, and 0 skipped.
+- **PR** — To be added.
+
 ## Contributors
 
 Before contributing to the project, please read the [Contribution Guidelines](docs/contributing.md).
