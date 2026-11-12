@@ -5,6 +5,7 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +28,7 @@ class TicketStatusHistoryBrowserTest {
     private Page page;
     private String lastStatusPayload;
     private int statusPatchCount;
+    private String lastStatusUrl;
 
     @BeforeEach
     void openTicketDetails() throws Exception {
@@ -42,9 +44,9 @@ class TicketStatusHistoryBrowserTest {
         page = context.newPage();
         page.onRequest(request -> {
             if (request.method().equals("PATCH")
-                    && request.url().endsWith(
-                            "/api/tickets/" + TICKET_ID + "/status")) {
+                && request.url().contains("/api/tickets/" + TICKET_ID + "/status?projectId=3")) {
                 statusPatchCount++;
+                lastStatusUrl = request.url();
                 lastStatusPayload = request.postData();
             }
         });
@@ -67,7 +69,11 @@ class TicketStatusHistoryBrowserTest {
         );
 
         String commentsScript = Files.readString(
-                Path.of("src/main/resources/static/js/ticket-comments.js")
+            Path.of("src/main/resources/static/js/ticket-comments.js")
+        );
+
+        String navigationScript = Files.readString(
+            Path.of("src/main/resources/static/js/project-navigation.js")
         );
 
         context.route(ORIGIN + "/**", route -> {
@@ -77,7 +83,7 @@ class TicketStatusHistoryBrowserTest {
                 route.fulfill(new Route.FulfillOptions()
                         .setStatus(200)
                         .setContentType("application/javascript")
-                        .setBody(""));
+                        .setBody(navigationScript));
             } else if (url.endsWith("/js/ticket-comments.js")) {
                 route.fulfill(new Route.FulfillOptions()
                         .setStatus(200)
@@ -93,7 +99,7 @@ class TicketStatusHistoryBrowserTest {
                         .setStatus(200)
                         .setContentType("application/json")
                         .setBody("{}"));
-            } else if (url.endsWith("/api/tickets/7/status")) {
+            } else if (url.contains("/api/tickets/7/status?projectId=3")) {
                 route.fulfill(new Route.FulfillOptions()
                 .setStatus(200)
                 .setContentType("application/json")
@@ -147,6 +153,9 @@ class TicketStatusHistoryBrowserTest {
 
         assertThat(page.locator(".details-badges .status")).hasClass("status progress");
 
+        assertTrue(
+            lastStatusUrl != null 
+            && lastStatusUrl.contains("projectId=3"), "A requisição PATCH deveria conter projectId=3");
         assertEquals(1, statusPatchCount);
         assertEquals(
             "{\"status\":\"IN_PROGRESS\"}",
@@ -157,16 +166,20 @@ class TicketStatusHistoryBrowserTest {
     }
 
     private void mockStatusFailure() {
-        page.unroute("**/api/tickets/7/status");
+        page.route("**/api/tickets/7/status*", route -> {
+            String url = route.request().url();
 
-        page.route("**/api/tickets/7/status", route ->
+            if (url.contains("projectId=3")) {
                 route.fulfill(new Route.FulfillOptions()
                         .setStatus(500)
                         .setContentType("application/json")
                         .setBody("""
                             {"error": "Internal Server Error"}""")
-                )
-        );
+                );
+            } else {
+                route.resume();
+            }
+        });
     }
 
     @Test

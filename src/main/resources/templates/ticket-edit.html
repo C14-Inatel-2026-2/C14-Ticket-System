@@ -159,7 +159,7 @@
         const form = document.getElementById('ticket-form');
         const feedback = document.getElementById('form-feedback');
         const ticketId = /*[[${ticket.id}]]*/ 0;
-        const project = /*[[${ticket.project}]]*/"";
+        const projectId = /*[[${ticket.projectId}]]*/ null;
         const originalStatus = /*[[${ticket.status.name()}]]*/ "OPEN";
         
         const fields = [
@@ -292,14 +292,14 @@
 
             const ticket = {
                 title: document.getElementById('title').value,
-                project: project,
+                projectId: Number(projectId),
                 assignee: document.getElementById('owner').value,
                 priority: document.getElementById('priority').value,
                 description: document.getElementById('description').value
             };
 
             try {
-                const response = await fetch(`/api/tickets/${ticketId}`, {
+                const response = await fetch(`/api/tickets/${ticketId}?projectId=${projectId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -314,7 +314,7 @@
                     if (newStatus !== originalStatus) {
 
                         const statusResponse = await fetch(
-                            `/api/tickets/${ticketId}/status`,
+                            `/api/tickets/${ticketId}/status?projectId=${projectId}`,
                             {
                                 method: 'PATCH',
                                 headers: {

@@ -163,7 +163,7 @@
         }
 
         try{
-            const response = await fetch(`/api/tickets/${ticketId}`,{
+            const response = await fetch(`/api/tickets/${ticketId}?projectId=${getProjectId()}`,{
                 method: 'DELETE'
             });
             

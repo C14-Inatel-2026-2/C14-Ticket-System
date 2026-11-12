@@ -59,7 +59,7 @@ async function updateTicketStatus() {
 
     try {
         const response = await fetch(
-            `/api/tickets/${currentTicketId}/status`,
+            `/api/tickets/${currentTicketId}/status?projectId=${getProjectId()}`,
             {
                 method: "PATCH",
                 headers: {
