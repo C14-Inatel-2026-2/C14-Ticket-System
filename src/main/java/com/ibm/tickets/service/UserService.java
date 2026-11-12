@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.ibm.tickets.dto.UserOptionResponse;
 import com.ibm.tickets.dto.UserProfileResponse;
 import com.ibm.tickets.model.TicketStatus;
 import com.ibm.tickets.model.User;
@@ -59,5 +60,17 @@ public class UserService {
                 projects
             );
 
+    }
+
+    public List<UserOptionResponse> getAllUsers(){
+        return userRepository.findAllByOrderByNameAsc()
+            .stream()
+            .map(user -> new UserOptionResponse(
+                    user.getId(),
+                    user.getName(),
+                    user.getEmail(),
+                    user.getRole().name()
+            ))
+            .toList();
     }
 }
