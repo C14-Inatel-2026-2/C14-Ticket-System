@@ -230,7 +230,7 @@ This refactoring reduces code duplication, improves maintainability, and consoli
 - **Refactoring Applied** — Move Method: centralized the validation logic in `TicketService.findByIdInProject`.
 - **Why** — eliminate duplicated business logic across controllers by moving the responsibility to the service layer, ensuring consistent behavior for both REST and Web interfaces. A dedicated `TicketNotInProjectException` was introduced to represent tickets that do not belong to the requested project.
 - **Tests** — `mvn verify` with 118 tests executed, 0 failures, 0 errors, and 0 skipped.
-- **PR** — To be added.
+- **PR** — [#63: Centralize ticket project validation](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/63).
 
 ## Contributors
 
