@@ -32,4 +32,9 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     long countByAssigneeUserIdAndStatusIn(Long userId, Collection<TicketStatus> statuses);
 
     List<Ticket> findAllByAssigneeUserIdOrderByCreatedAtDesc(Long userId);
+
+    long countByProjectReferenceId(Long projectId);
+
+    long countByProjectReferenceIsNullAndProject(String project);
+
 }
