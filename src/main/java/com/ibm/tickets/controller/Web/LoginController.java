@@ -19,9 +19,6 @@ import jakarta.servlet.http.HttpSession;
  */
 @Controller 
 public class LoginController {
-    
-    private static final String USERNAME = "admin";
-    private static final String PASSWORD = "admin";
 
     private final AuthenticationService authenticationService;
 

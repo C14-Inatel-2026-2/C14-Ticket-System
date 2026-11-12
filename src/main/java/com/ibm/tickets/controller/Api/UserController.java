@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ibm.tickets.dto.UserActivityResponse;
+import com.ibm.tickets.dto.UserOptionResponse;
 import com.ibm.tickets.dto.UserProfileResponse;
 import com.ibm.tickets.service.UserService;
 
@@ -89,5 +90,10 @@ public class UserController {
     @GetMapping("/{userId}")
     public UserProfileResponse getUserProfile(@PathVariable Long userId){
         return userService.getProfile(userId);
+    }
+
+    @GetMapping
+    public List<UserOptionResponse> findAllUsers() {
+        return userService.getAllUsers();
     }
 }

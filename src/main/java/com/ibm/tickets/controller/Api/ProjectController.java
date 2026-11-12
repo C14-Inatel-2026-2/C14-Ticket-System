@@ -1,9 +1,20 @@
 package com.ibm.tickets.controller.Api;
 
+import com.ibm.tickets.dto.ProjectRequest;
 import com.ibm.tickets.dto.ProjectResponse;
 import com.ibm.tickets.service.ProjectService;
+
+import jakarta.validation.Valid;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -25,5 +36,37 @@ public class ProjectController {
    @GetMapping
    public List<ProjectResponse> getProjects() {
       return projectService.getProjects();
+   }
+
+   @GetMapping("/{projectId}")
+   public ProjectResponse getProject(@PathVariable Long projectId) {
+      return projectService.getProject(projectId);
+   }
+
+   @PostMapping 
+   @ResponseStatus (HttpStatus.CREATED)
+   public ProjectResponse create(@Valid @RequestBody ProjectRequest request){
+      return projectService.create(request);
+   }
+
+   @PutMapping("/{projectId}")
+   public ProjectResponse update(@PathVariable Long projectId,
+         @Valid @RequestBody ProjectRequest request){
+      return projectService.update(projectId, request);
+   }
+
+
+   @DeleteMapping("/{projectId}")
+   @ResponseStatus(HttpStatus.NO_CONTENT)
+   public void deleteProject(
+         @PathVariable Long projectId) {
+
+      projectService.delete(projectId);
+   }
+
+
+   @GetMapping ("/{projectId}/members")
+   public List<Long> getMembersIds(@PathVariable Long projectId){
+      return projectService.getMemberIds(projectId);
    }
 }

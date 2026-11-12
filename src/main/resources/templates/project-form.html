@@ -1,0 +1,116 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Projeto | C14 Tickets</title>
+
+    <link rel="stylesheet" href="/css/projects.css">
+    <link rel="stylesheet" href="/css/project-form.css">
+</head>
+<body>
+
+<header class="navbar">
+    <a href="/project" class="brand">C14 Tickets</a>
+
+    <nav>
+        <a href="/project">Projetos</a>
+        <a href="/users/me">Perfil</a>
+    </nav>
+</header>
+
+<main class="container">
+
+    <a href="/project" class="back-link">
+        ← Voltar aos projetos
+    </a>
+
+    <section class="form-card">
+        <h1 id="form-title">Criar projeto</h1>
+
+        <p class="form-subtitle">
+            Defina as informações do projeto e sua equipe.
+        </p>
+
+        <form id="project-form">
+            <div class="form-group">
+                <label for="project-name">
+                    Nome do projeto
+                </label>
+
+                <input
+                    id="project-name"
+                    type="text"
+                    maxlength="100"
+                    required
+                    placeholder="Ex.: C14 Ticket System">
+            </div>
+
+            <div class="form-group">
+                        <label for="project-description">
+                            Descrição
+                        </label>
+
+                        <textarea
+                            id="project-description"
+                            rows="5"
+                            placeholder="Descreva o objetivo do projeto..."
+                        ></textarea>
+                    </div>
+
+                    
+            <div class="form-group">
+                <label for="user-search">Participantes</label>
+
+                <div class="user-search-container">
+                    <input
+                        type="search"
+                        id="user-search"
+                        placeholder="Pesquisar usuário..."
+                        autocomplete="off"
+                    >
+
+                    <div
+                        id="user-search-results"
+                        class="user-search-results"
+                        hidden>
+                    </div>
+                </div>
+
+                <div class="members-header">
+                    <span>Usuários selecionados</span>
+                    <span id="members-count">0 participantes</span>
+                </div>
+
+                <div id="selected-users" class="selected-users"></div>
+            </div>
+
+
+            <p id="form-error"
+               class="form-error"
+               role="alert"
+               hidden></p>
+
+            <div class="form-actions">
+                <a href="/project"
+                   class="secondary-button">
+                    Cancelar
+                </a>
+
+                <button
+                    type="submit"
+                    id="save-button"
+                    class="primary-button">
+                    Criar projeto
+                </button>
+            </div>
+        </form>
+    </section>
+</main>
+
+<script src="/js/project-form.js"></script>
+</body>
+</html>
