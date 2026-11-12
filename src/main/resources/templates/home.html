@@ -113,9 +113,9 @@
                 params.append("priority", priority);
             }
 
-            const url = params.toString()
-                ? `/api/tickets?${params.toString()}`
-                : "/api/tickets";
+            params.append("projectId", getProjectId());
+
+            const url = `/api/tickets?${params.toString()}`;
 
             const response = await fetch(url);
 

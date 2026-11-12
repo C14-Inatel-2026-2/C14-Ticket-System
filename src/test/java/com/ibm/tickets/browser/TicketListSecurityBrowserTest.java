@@ -3,18 +3,19 @@ package com.ibm.tickets.browser;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.Route;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TicketListSecurityBrowserTest {
     private static final String ORIGIN = "http://127.0.0.1:18788";
@@ -115,28 +116,26 @@ class TicketListSecurityBrowserTest {
 
     @Test
     void keepsTicketLinkAndFiltersWorking() {
-        assertThat(page.locator("#ticket-list a.ticket-link"))
-                .hasAttribute("href", "/project/3/tickets/15");
-
+            assertThat(page.locator("#ticket-list a.ticket-link"))
+            .hasAttribute("href", "/project/3/tickets/15");
+            
+        assertTrue(lastApiUrl.contains("projectId=3"));
+        
         page.locator("#status-filter").selectOption("OPEN");
 
         page.waitForCondition(() ->
             lastApiUrl != null && lastApiUrl.contains("status=OPEN"));
 
         assertThat(page.locator("#ticket-list tr")).hasCount(1);
-        assertEquals(
-                ORIGIN + "/api/tickets?status=OPEN",
-                lastApiUrl
-        );
+        assertTrue(lastApiUrl.contains("projectId=3"));
+        assertTrue(lastApiUrl.contains("status=OPEN"));
 
         page.locator("#priority-filter").selectOption("HIGH");
         page.waitForCondition(() ->
             lastApiUrl != null
                     && lastApiUrl.contains("status=OPEN")
                     && lastApiUrl.contains("priority=HIGH"));
-        assertEquals(
-                ORIGIN + "/api/tickets?status=OPEN&priority=HIGH",
-                lastApiUrl
-        );
+        assertTrue(lastApiUrl.contains("projectId=3"));
+        assertTrue(lastApiUrl.contains("status=OPEN"));
     }
 }

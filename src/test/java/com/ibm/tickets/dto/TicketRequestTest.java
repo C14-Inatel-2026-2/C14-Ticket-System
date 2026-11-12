@@ -1,6 +1,7 @@
 package com.ibm.tickets.dto;
 
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import java.util.stream.Stream;
 
 import com.ibm.tickets.model.TicketPriority;
 
@@ -31,10 +31,8 @@ class TicketRequestTest {
                 Arguments.of("title", "   "), Arguments.of("title", "x".repeat(151)),
                 Arguments.of("assignee", null), Arguments.of("assignee", ""),
                 Arguments.of("assignee", "   "), Arguments.of("assignee", "x".repeat(101)),
-                Arguments.of("project", null), Arguments.of("project", ""),
-                Arguments.of("project", "   "), Arguments.of("project", "x".repeat(101)),
-                Arguments.of("description", null), Arguments.of("description", ""),
-                Arguments.of("description", "   "));
+                Arguments.of("projectId", null), Arguments.of("description", null), 
+                Arguments.of("description", ""), Arguments.of("description", "   "));
     }
 
     @ParameterizedTest
@@ -43,7 +41,7 @@ class TicketRequestTest {
         TicketRequest request = new TicketRequest(
                 field.equals("title") ? value : "Valid title",
                 field.equals("description") ? value : "Valid description",
-                field.equals("project") ? value : "Valid project",
+                field.equals("projectId") ? null : 1L,
                 field.equals("assignee") ? value : "Valid owner", TicketPriority.HIGH);
         assertTrue(validator.validate(request).stream()
                 .anyMatch(violation -> violation.getPropertyPath().toString().equals(field)));
@@ -52,13 +50,13 @@ class TicketRequestTest {
     @Test
     void acceptsExactLimitsAndDoesNotInventDescriptionLimit() {
         TicketRequest request = new TicketRequest("t".repeat(150), "d".repeat(2000),
-                "p".repeat(100), "a".repeat(100), TicketPriority.HIGH);
+                1L, "a".repeat(100), TicketPriority.HIGH);
         assertTrue(validator.validate(request).isEmpty());
     }
 
     @Test
     void rejectsMissingPriority() {
-        TicketRequest request = new TicketRequest("Title", "Description", "Project", "Owner", null);
+        TicketRequest request = new TicketRequest("Title", "Description", 1L, "Owner", null);
         assertTrue(validator.validate(request).stream()
                 .anyMatch(violation -> violation.getPropertyPath().toString().equals("priority")));
     }
@@ -82,7 +80,7 @@ class TicketRequestTest {
         TicketRequest request = new TicketRequest(
                 "Printer problem",
                 "The printer is not working",
-                "Internal Systems",
+                1L,
                 "Gabriel",
                 TicketPriority.HIGH);
 
@@ -97,7 +95,7 @@ class TicketRequestTest {
         TicketRequest request = new TicketRequest(
                 "",
                 "The printer is not working",
-                "Internal Systems",
+                1L,
                 "Gabriel",
                 TicketPriority.HIGH);
 

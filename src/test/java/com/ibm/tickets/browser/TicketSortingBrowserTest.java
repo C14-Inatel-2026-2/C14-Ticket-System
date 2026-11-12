@@ -5,17 +5,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.Route;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TicketSortingBrowserTest {
 
@@ -29,45 +30,49 @@ class TicketSortingBrowserTest {
     private String lastApiUrl;
 
     private static final String TICKETS_JSON = """
-            [
-              {
-                "id": 1,
-                "title": "Ticket LOW",
-                "project": "Projeto A",
-                "assignee": "Ana",
-                "status": "OPEN",
-                "priority": "LOW",
-                "createdAt": "2026-01-10T10:00:00Z"
-              },
-              {
-                "id": 2,
-                "title": "Ticket URGENT",
-                "project": "Projeto A",
-                "assignee": "Bruno",
-                "status": "OPEN",
-                "priority": "URGENT",
-                "createdAt": "2026-01-12T10:00:00Z"
-              },
-              {
-                "id": 3,
-                "title": "Ticket HIGH",
-                "project": "Projeto B",
-                "assignee": "Carlos",
-                "status": "OPEN",
-                "priority": "HIGH",
-                "createdAt": "2026-01-11T10:00:00Z"
-              },
-              {
-                "id": 4,
-                "title": "Ticket MEDIUM",
-                "project": "Projeto B",
-                "assignee": "Daniela",
-                "status": "OPEN",
-                "priority": "MEDIUM",
-                "createdAt": "2026-01-09T10:00:00Z"
-              }
-            ]
-            """;
+        [
+          {
+            "id": 1,
+            "title": "Ticket LOW",
+            "project": "Ticket System",
+            "projectId": 3,
+            "assignee": "Ana",
+            "status": "OPEN",
+            "priority": "LOW",
+            "createdAt": "2026-01-10T10:00:00Z"
+          },
+          {
+            "id": 2,
+            "title": "Ticket URGENT",
+            "project": "Ticket System",
+            "projectId": 3,
+            "assignee": "Bruno",
+            "status": "OPEN",
+            "priority": "URGENT",
+            "createdAt": "2026-01-12T10:00:00Z"
+          },
+          {
+            "id": 3,
+            "title": "Ticket HIGH",
+            "project": "Ticket System",
+            "projectId": 3,
+            "assignee": "Carlos",
+            "status": "OPEN",
+            "priority": "HIGH",
+            "createdAt": "2026-01-11T10:00:00Z"
+          },
+          {
+            "id": 4,
+            "title": "Ticket MEDIUM",
+            "project": "Ticket System",
+            "projectId": 3,
+            "assignee": "Daniela",
+            "status": "OPEN",
+            "priority": "MEDIUM",
+            "createdAt": "2026-01-09T10:00:00Z"
+          }
+        ]
+        """;
 
     @BeforeEach
     void openTicketList() throws Exception {
@@ -134,7 +139,7 @@ class TicketSortingBrowserTest {
     private void selectSorting(String option) {
         page.locator("#sort-filter").selectOption(option);
         page.waitForCondition(() ->
-                lastApiUrl != null && lastApiUrl.contains("/api/tickets"));
+                lastApiUrl != null && lastApiUrl.contains("/api/tickets") && lastApiUrl.contains("projectId=3"));
     }
 
     private List<String> getTicketIds() {
@@ -174,14 +179,15 @@ class TicketSortingBrowserTest {
         page.locator("#status-filter").selectOption("OPEN");
 
         page.waitForCondition(() ->
-                lastApiUrl != null && lastApiUrl.contains("status=OPEN"));
+                lastApiUrl != null && lastApiUrl.contains("projectId=3") && lastApiUrl.contains("status=OPEN"));
 
         page.locator("#sort-filter").selectOption("priority-desc");
 
         page.waitForCondition(() ->
-                lastApiUrl != null && lastApiUrl.contains("status=OPEN"));
+                lastApiUrl != null && lastApiUrl.contains("projectId=3") && lastApiUrl.contains("status=OPEN"));
 
-        assertEquals(ORIGIN + "/api/tickets?status=OPEN", lastApiUrl);
+        assertTrue(lastApiUrl.contains("projectId=3"));
+        assertTrue(lastApiUrl.contains("status=OPEN"));
 
         assertEquals(List.of("2", "3", "4", "1"), getTicketIds());
     }

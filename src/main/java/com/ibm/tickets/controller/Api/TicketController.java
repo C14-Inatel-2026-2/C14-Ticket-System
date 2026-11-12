@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.ibm.tickets.dto.TicketRequest;
 import com.ibm.tickets.dto.TicketResponse;
@@ -40,6 +41,16 @@ public class TicketController {
         this.ticketService = ticketService;
     }
 
+    private void validateTicketProject(Long ticketId, Long projectId) {
+        TicketResponse ticket = ticketService.findById(ticketId);
+
+        if (ticket.projectId() == null || !ticket.projectId().equals(projectId)) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Ticket not found in this project");
+        }
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public TicketResponse create(
@@ -49,39 +60,52 @@ public class TicketController {
 
     @GetMapping
     public List<TicketResponse> findAll(
-            @RequestParam(required = false) TicketStatus status,
-            @RequestParam(required = false) TicketPriority priority) {
+        @RequestParam(required = false) Long projectId,
+        @RequestParam(required = false) TicketStatus status,
+        @RequestParam(required = false) TicketPriority priority) {
 
-        if (priority == null){
-            return ticketService.findAll(status);
-        }
-        return ticketService.findAll(status, priority);
+        return ticketService.findAll(projectId, status, priority);
     }
 
     @GetMapping("/{id}")
-    public TicketResponse findById(@PathVariable Long id) {
+    public TicketResponse findById(@PathVariable Long id, @RequestParam Long projectId) {
+        validateTicketProject(id, projectId);
         return ticketService.findById(id);
     }
 
     @PutMapping("/{id}")
     public TicketResponse update(
             @PathVariable Long id,
+            @RequestParam Long projectId,
             @Valid @RequestBody TicketRequest request,
-        HttpSession session) {
+            HttpSession session) {
+        
+        validateTicketProject(id, projectId);
+
+       if (!request.projectId().equals(projectId)) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Ticket not found in this project");
+        }
         return ticketService.update(id, request, getAuthor(session));
     }
 
     @PatchMapping("/{id}/status")
     public TicketResponse updateStatus(
             @PathVariable Long id,
+            @RequestParam Long projectId,
             @Valid @RequestBody TicketStatusRequest request,
             HttpSession session) {
+
+        validateTicketProject(id, projectId);
         return ticketService.updateStatus(id, request.status(), getAuthor(session));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
+    public void delete(@PathVariable Long id, @RequestParam Long projectId) {
+        
+        validateTicketProject(id, projectId);
         ticketService.delete(id);
     }
 

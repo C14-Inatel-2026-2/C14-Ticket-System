@@ -1,9 +1,5 @@
 package com.ibm.tickets.browser;
 
-import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -13,6 +9,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -26,6 +24,7 @@ import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.Route;
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 /**
  * Tests ticket editing form validation and API interactions.
@@ -55,7 +54,9 @@ class TicketEditBrowserTest {
         context = browser.newContext();
 
         String rawTemplate = Files.readString(Path.of("src/main/resources/templates/ticket-edit.html"));
-        final String template = rawTemplate.replace("/*[[${ticket.id}]]*/ 0", "2").replace("/*[[${ticket.project}]]*/\"\"", "\"Ticket System\"");
+        final String template = rawTemplate
+            .replace("/*[[${ticket.id}]]*/ 0", "2")
+            .replace("/*[[${ticket.projectId}]]*/ null", "3");
         String projectNavigation = Files.readString(Path.of("src/main/resources/static/js/project-navigation.js"));
 
         context.route(ORIGIN + "/**", route -> {
@@ -82,13 +83,13 @@ class TicketEditBrowserTest {
 
         page.onRequest(request -> {
             if (request.method().equals("PUT")
-                    && request.url().endsWith("/api/tickets/2")) {
+                    && request.url().contains("/api/tickets/2?projectId=3")) {
                 puts.incrementAndGet();
                 payload.set(request.postData());
             }
         });
 
-        page.route("**/api/tickets/2", route ->
+        page.route("**/api/tickets/2?projectId=3", route ->
                 route.fulfill(new Route.FulfillOptions()
                         .setStatus(200)
                         .setContentType("application/json")
@@ -144,9 +145,9 @@ class TicketEditBrowserTest {
     }
 
     private void respond(int status, String contentType, String body) {
-        page.unroute("**/api/tickets/2");
+        page.unroute("**/api/tickets/2?projectId=3");
 
-        page.route("**/api/tickets/2", route ->
+        page.route("**/api/tickets/2?projectId=3", route ->
                 route.fulfill(new Route.FulfillOptions()
                         .setStatus(status)
                         .setContentType(contentType)
@@ -200,8 +201,11 @@ class TicketEditBrowserTest {
         submit();
 
         assertEquals(1, puts.get());
+        assertTrue(
+            payload.get().contains("\"projectId\":3"),
+            "O ticket deve continuar associado ao projeto original");
         assertTrue(payload.get().contains(value));
-        assertThat(page).hasURL(ORIGIN + "/project/3/tickets");
+        assertThat(page).hasURL(ORIGIN + "/project/3/tickets/2");
     }
 
 
@@ -309,7 +313,7 @@ class TicketEditBrowserTest {
 
         submit();
 
-        assertThat(page).hasURL(ORIGIN + "/project/3/tickets");
+        assertThat(page).hasURL(ORIGIN + "/project/3/tickets/2");
         assertEquals(2, puts.get());
     }
 
@@ -354,10 +358,10 @@ class TicketEditBrowserTest {
     void reportsNetworkFailureWithoutLosingFormValues() {
         fillValid();
 
-        page.unroute("**/api/tickets/2");
+        page.unroute("**/api/tickets/2?projectId=3");
 
-        page.route("**/api/tickets/2", route ->
-                route.abort()
+        page.route("**/api/tickets/2?projectId=3", route ->
+            route.abort()
         );
 
         submit();
@@ -375,19 +379,19 @@ class TicketEditBrowserTest {
 
         page.waitForRequest(
                 request -> request.method().equals("PUT")
-                        && request.url().endsWith("/api/tickets/2"),
+                    && request.url().contains("/api/tickets/2?projectId=3"),
                 () -> submit()
         );
 
         assertEquals(1, puts.get());
 
         assertTrue(payload.get().contains("\"title\":\"Teste de edição\""));
-        assertTrue(payload.get().contains("\"project\":\"Ticket System\""));
+        assertTrue(payload.get().contains("\"projectId\":3"));
         assertTrue(payload.get().contains("\"assignee\":\"Mariana\""));
         assertTrue(payload.get().contains("\"priority\":\"HIGH\""));
         assertTrue(payload.get().contains("\"description\":\"Descrição original do ticket\""));
 
-        assertThat(page).hasURL(ORIGIN + "/project/3/tickets");
+        assertThat(page).hasURL(ORIGIN + "/project/3/tickets/2");
     }
 
     @Test

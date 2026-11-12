@@ -235,6 +235,6 @@ class NewTicketBrowserTest {
         );
 
         assertEquals(1, posts.get());
-        assertTrue(payload.get().contains("\"project\":\"Ticket System\""));
+        assertTrue(payload.get().contains("\"projectId\":3"));
     }
 }

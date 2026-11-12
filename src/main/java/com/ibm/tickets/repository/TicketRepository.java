@@ -18,15 +18,13 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     List<Ticket> findAllByOrderByCreatedAtDesc();
 
-    List<Ticket> findAllByPriorityOrderByCreatedAtDesc(
-            TicketPriority priority);
+    List<Ticket> findAllByPriorityOrderByCreatedAtDesc(TicketPriority priority);
 
-    List<Ticket> findAllByStatusOrderByCreatedAtDesc(
-            TicketStatus status);
+    List<Ticket> findAllByStatusOrderByCreatedAtDesc(TicketStatus status);
 
     List<Ticket> findAllByStatusAndPriorityOrderByCreatedAtDesc(
-            TicketStatus status,
-            TicketPriority priority);
+        TicketStatus status,
+        TicketPriority priority);
 
     long countByAssigneeUserId(Long userId);
     long countByAssigneeUserIdAndStatusIn(Long userId, Collection<TicketStatus> statuses);
@@ -36,5 +34,19 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     long countByProjectReferenceId(Long projectId);
 
     long countByProjectReferenceIsNullAndProject(String project);
+    List<Ticket> findAllByProjectReference_IdOrderByCreatedAtDesc(Long projectId);
+
+    List<Ticket> findAllByProjectReference_IdAndPriorityOrderByCreatedAtDesc(
+        Long projectId,
+        TicketPriority priority);
+
+    List<Ticket> findAllByProjectReference_IdAndStatusOrderByCreatedAtDesc(
+        Long projectId,
+        TicketStatus status);
+
+    List<Ticket> findAllByProjectReference_IdAndStatusAndPriorityOrderByCreatedAtDesc(
+        Long projectId,
+        TicketStatus status,
+        TicketPriority priority);
 
 }

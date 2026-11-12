@@ -77,6 +77,7 @@ public class TicketWebControllerTest {
             4L,
             "Erro ao realizar login",
             "Usuario nao consegue realizar login",
+            projectId,
             "Ticket System",
             "Mariana",
             TicketStatus.OPEN,
@@ -97,6 +98,7 @@ public class TicketWebControllerTest {
             4L,
             "Erro ao realizar login",
             "Usuario nao consegue realizar login",
+            projectId,
             "Ticket System",
             "Mariana",
             TicketStatus.OPEN,
@@ -118,6 +120,7 @@ public class TicketWebControllerTest {
             4L,
             "Erro ao realizar login",
             "Usuario nao consegue realizar login",
+            projectId,
             "Projeto de Teste",
             "Mariana",
             TicketStatus.OPEN,
@@ -131,5 +134,47 @@ public class TicketWebControllerTest {
         .andExpect(status().isOk())
         .andExpect(view().name("ticket-edit"))
         .andExpect(model().attribute("ticket", ticketResponse));
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenTicketBelongsToAnotherProject() throws Exception {
+        TicketResponse ticketResponse = new TicketResponse(
+            4L,
+            "Erro ao realizar login",
+            "Usuario nao consegue realizar login",
+            1L,
+            "Ticket System",
+            "Mariana",
+            TicketStatus.OPEN,
+            TicketPriority.HIGH,
+            OffsetDateTime.now(),
+            OffsetDateTime.now()
+        );
+
+        when(ticketService.findById(4L)).thenReturn(ticketResponse);
+
+        mockMvc.perform(get(baseUrl + "/4").session(session))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenEditingTicketFromAnotherProject() throws Exception {
+        TicketResponse ticketResponse = new TicketResponse(
+            4L,
+            "Erro ao realizar login",
+            "Usuario nao consegue realizar login",
+            1L,
+            "Ticket System",
+            "Mariana",
+            TicketStatus.OPEN,
+            TicketPriority.HIGH,
+            OffsetDateTime.now(),
+            OffsetDateTime.now()
+        );
+
+        when(ticketService.findById(4L)).thenReturn(ticketResponse);
+
+        mockMvc.perform(get(baseUrl + "/4/edit").session(session))
+            .andExpect(status().isNotFound());
     }
 }

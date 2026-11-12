@@ -9,10 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
-
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -22,9 +20,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.ibm.tickets.dto.TicketRequest;
 import com.ibm.tickets.dto.TicketResponse;
 import com.ibm.tickets.exception.TicketNotFoundException;
+import com.ibm.tickets.model.Project;
 import com.ibm.tickets.model.Ticket;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
+import com.ibm.tickets.repository.ProjectRepository;
 import com.ibm.tickets.repository.TicketRepository;
 
 
@@ -39,25 +39,43 @@ class TicketServiceTest {
     @Mock
     private TicketRepository ticketRepository;
 
+    @Mock
+    private ProjectRepository projectRepository;
+
     @InjectMocks
     private TicketService ticketService;
 
     @Mock
     private TicketActivityService activityService;
 
+    private static final Long PROJECT_ID = 1L;
+    private static final Long UPDATED_PROJECT_ID = 2L;
+
+    private Project createProject(Long id, String name) {
+        Project project = new Project(name, "Test description");
+
+        org.springframework.test.util.ReflectionTestUtils.setField(project, "id", id);
+
+        return project;
+    }
+
     @Test
     void shouldCreateTicket() {
         TicketRequest request = new TicketRequest(
                 "Printer problem",
                 "The printer is not working",
-                "Internal Systems",
+                PROJECT_ID,
                 "Gabriel",
                 TicketPriority.HIGH);
+
+        Project project = createProject(PROJECT_ID, "Internal Systems");
+        when(projectRepository.findById(PROJECT_ID)).thenReturn(Optional.of(project));
 
         when(ticketRepository.saveAndFlush(any(Ticket.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         TicketResponse response = ticketService.create(request);
+        verify(projectRepository).findById(PROJECT_ID);
 
         assertAll(
                 () -> assertEquals(
@@ -76,7 +94,12 @@ class TicketServiceTest {
                         TicketPriority.HIGH,
                         response.priority()));
 
-        verify(ticketRepository).saveAndFlush(any(Ticket.class));
+        verify(ticketRepository).saveAndFlush(
+            org.mockito.ArgumentMatchers.argThat(ticket ->
+                ticket.getProjectReference() != null
+                && ticket.getProjectReference().getId().equals(PROJECT_ID)
+            )
+        );
     }
 
     @Test
@@ -155,9 +178,13 @@ class TicketServiceTest {
         TicketRequest request = new TicketRequest(
                 "Updated title",
                 "Updated description",
-                "Updated project",
+                UPDATED_PROJECT_ID,
                 "Mariana",
                 TicketPriority.MEDIUM);
+        
+        Project updatedProject = createProject(UPDATED_PROJECT_ID, "Updated project");
+        
+        when(projectRepository.findById(UPDATED_PROJECT_ID)).thenReturn(Optional.of(updatedProject));
 
         when(ticketRepository.findById(1L))
                 .thenReturn(Optional.of(ticket));
