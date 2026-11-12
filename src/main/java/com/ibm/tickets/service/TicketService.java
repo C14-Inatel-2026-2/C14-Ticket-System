@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ibm.tickets.dto.TicketRequest;
 import com.ibm.tickets.dto.TicketResponse;
 import com.ibm.tickets.exception.TicketNotFoundException;
+import com.ibm.tickets.exception.TicketNotInProjectException;
 import com.ibm.tickets.model.Project;
 import com.ibm.tickets.model.Ticket;
 import com.ibm.tickets.model.TicketPriority;
@@ -109,6 +110,16 @@ public class TicketService {
 
     public TicketResponse findById(Long id) {
         return TicketResponse.from(findEntityById(id));
+    }
+
+    public TicketResponse findByIdInProject(Long ticketId, Long projectId) {
+        TicketResponse ticket = findById(ticketId);
+
+        if (ticket.projectId() == null || !ticket.projectId().equals(projectId)) {
+            throw new TicketNotInProjectException();
+        }
+
+        return ticket;
     }
 
     @Transactional

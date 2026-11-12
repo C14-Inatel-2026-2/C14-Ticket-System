@@ -224,6 +224,14 @@ This refactoring reduces code duplication, improves maintainability, and consoli
 - **Testes** — `mvn verify` com 97 testes na base e 100 após a mudança, sem falhas. Os três novos testes cobrem todos os campos, valores nulos, datas e texto literal.
 - **Pipeline** — o Jenkins da base estava em `error` no início. Conferir os checks do PR para comprovar a validação no CI.
 
+### Mariana Barude Pina — Centralizing Ticket-Project Validation
+
+- **Smell** — Duplicate Code: `TicketController.validateTicketProject` and `TicketWebController.findTicketInProject` implemented the same validation logic to verify whether a ticket belonged to the requested project.
+- **Refactoring Applied** — Move Method: centralized the validation logic in `TicketService.findByIdInProject`.
+- **Why** — eliminate duplicated business logic across controllers by moving the responsibility to the service layer, ensuring consistent behavior for both REST and Web interfaces. A dedicated `TicketNotInProjectException` was introduced to represent tickets that do not belong to the requested project.
+- **Tests** — `mvn verify` with 118 tests executed, 0 failures, 0 errors, and 0 skipped.
+- **PR** — To be added.
+
 ## Contributors
 
 Before contributing to the project, please read the [Contribution Guidelines](docs/contributing.md).
