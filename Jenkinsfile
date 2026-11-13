@@ -88,33 +88,24 @@ pipeline {
             branch 'main'
         }
 
-        steps {
-            withCredentials([
-                string(
-                    credentialsId: 'railway-token',
-                    variable: 'RAILWAY_TOKEN'
-                )
-            ]) {
-                sh '''
-                    set +x
+            steps {
+                withCredentials([
+                    string(
+                        credentialsId: 'railway-token',
+                        variable: 'RAILWAY_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        set +x
 
-                    docker run --rm \
-                        -e RAILWAY_TOKEN \
-                        node:22-bookworm-slim \
-                        sh -c 'npx -y @railway/cli@latest redeploy --service c14-tickets-api --yes'
-                '''
+                        docker run --rm \
+                            -e RAILWAY_TOKEN \
+                            node:22-bookworm-slim \
+                            sh -c 'npx -y @railway/cli@latest redeploy --service c14-tickets-api --yes'
+                    '''
+                }
             }
-        }
     }
-    post {
-
-        success {
-            echo 'Build success.'
-        }
-
-        failure {
-            echo 'Build failed.'
-        }
 
     }
 }
