@@ -4,6 +4,15 @@ A **web-based ticket management system** developed as part of the C14 project.
 
 The application provides a centralized environment for creating, managing, and tracking tickets throughout their lifecycle. The project is built with **Java and Spring Boot**, following a structured development workflow with automated validation through **Jenkins CI**.
 
+
+## Live Application
+
+The **C14 Ticket System** is publicly available on Railway.
+
+🌐 **Access the application:** [C14 Ticket System](https://c14-ticket-system-production.up.railway.app)
+
+The application uses Docker for containerization, PostgreSQL for data persistence, and Jenkins for its CI/CD pipeline, with Docker images published to GitHub Container Registry (GHCR) and deployed to Railway.
+
 ## Technologies
 
 - Java
@@ -60,7 +69,7 @@ The application is organised into separate layers for controllers, services, rep
 * [x] Ticket editing
 * [x] Ticket deletion
 * [x] Ticket status management
-* [ ] Ticket comments
+* [x] Ticket comments
 * [x] Tickets status history
 * [x] User authentication
 
@@ -79,7 +88,7 @@ The application is organised into separate layers for controllers, services, rep
 * [x] Automated build validation
 * [x] Automated tests
 * [x] Application containerization
-* [ ] Continuous Deployment
+* [x] Continuous Deployment
 
 ## Ticket Management
 

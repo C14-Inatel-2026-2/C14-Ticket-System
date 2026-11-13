@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.ibm.tickets.controller.Web.TicketWebController;
 import com.ibm.tickets.dto.TicketResponse;
+import com.ibm.tickets.exception.TicketNotInProjectException;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
 import com.ibm.tickets.service.TicketService;
@@ -85,7 +86,7 @@ public class TicketWebControllerTest {
             OffsetDateTime.now(),
             OffsetDateTime.now()
         );
-        when(ticketService.findById(4L)).thenReturn(ticketResponse);
+        when(ticketService.findByIdInProject(4L, projectId)).thenReturn(ticketResponse);
 
         mockMvc.perform(get(baseUrl + "/4").session(session))
         .andExpect(status().isOk())
@@ -106,12 +107,12 @@ public class TicketWebControllerTest {
             OffsetDateTime.now(),
             OffsetDateTime.now());
 
-    when(ticketService.findById(4L)).thenReturn(ticketResponse);
+        when(ticketService.findByIdInProject(4L, projectId)).thenReturn(ticketResponse);
 
-    mockMvc.perform(get(baseUrl + "/4").session(session))
-            .andExpect(status().isOk())
-            .andExpect(view().name("ticket-details"))
-            .andExpect(content().string(containsString("Excluir")));
+        mockMvc.perform(get(baseUrl + "/4").session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("ticket-details"))
+                .andExpect(content().string(containsString("Excluir")));
     }
 
     @Test
@@ -128,7 +129,7 @@ public class TicketWebControllerTest {
             OffsetDateTime.now(),
             OffsetDateTime.now());
 
-        when(ticketService.findById(4L)).thenReturn(ticketResponse);
+        when(ticketService.findByIdInProject(4L, projectId)).thenReturn(ticketResponse);
 
         mockMvc.perform(get(baseUrl + "/4/edit").session(session))
         .andExpect(status().isOk())
@@ -138,20 +139,7 @@ public class TicketWebControllerTest {
 
     @Test
     void shouldReturnNotFoundWhenTicketBelongsToAnotherProject() throws Exception {
-        TicketResponse ticketResponse = new TicketResponse(
-            4L,
-            "Erro ao realizar login",
-            "Usuario nao consegue realizar login",
-            1L,
-            "Ticket System",
-            "Mariana",
-            TicketStatus.OPEN,
-            TicketPriority.HIGH,
-            OffsetDateTime.now(),
-            OffsetDateTime.now()
-        );
-
-        when(ticketService.findById(4L)).thenReturn(ticketResponse);
+        when(ticketService.findByIdInProject(4L, projectId)).thenThrow(new TicketNotInProjectException());
 
         mockMvc.perform(get(baseUrl + "/4").session(session))
             .andExpect(status().isNotFound());
@@ -159,20 +147,7 @@ public class TicketWebControllerTest {
 
     @Test
     void shouldReturnNotFoundWhenEditingTicketFromAnotherProject() throws Exception {
-        TicketResponse ticketResponse = new TicketResponse(
-            4L,
-            "Erro ao realizar login",
-            "Usuario nao consegue realizar login",
-            1L,
-            "Ticket System",
-            "Mariana",
-            TicketStatus.OPEN,
-            TicketPriority.HIGH,
-            OffsetDateTime.now(),
-            OffsetDateTime.now()
-        );
-
-        when(ticketService.findById(4L)).thenReturn(ticketResponse);
+        when(ticketService.findByIdInProject(4L, projectId)).thenThrow(new TicketNotInProjectException());
 
         mockMvc.perform(get(baseUrl + "/4/edit").session(session))
             .andExpect(status().isNotFound());

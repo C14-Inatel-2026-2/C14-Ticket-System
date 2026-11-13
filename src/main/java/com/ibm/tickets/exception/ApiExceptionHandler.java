@@ -32,6 +32,20 @@ public class ApiExceptionHandler {
                 .status(HttpStatus.NOT_FOUND)
                 .body(problem);
     }
+    @ExceptionHandler(TicketNotInProjectException.class)
+    public ResponseEntity<ProblemDetail> handleTicketNotInProject(
+            TicketNotInProjectException exception) {
+
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+				HttpStatus.NOT_FOUND,
+				exception.getMessage());
+
+		problem.setTitle("Ticket not found");
+
+		return ResponseEntity
+			.status(HttpStatus.NOT_FOUND)
+			.body(problem);
+		}
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> handleValidation(

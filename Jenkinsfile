@@ -83,41 +83,29 @@ pipeline {
                 }
             }
         }
-        stage('Deploy') {
-            when {
-                branch 'main'
-            }
+        stage('Deploy to Railway') {
+        when {
+            branch 'main'
+        }
+
             steps {
                 withCredentials([
-                    usernamePassword(
-                        credentialsId: 'ghcr-credentials',
-                        usernameVariable: 'GHCR_USER',
-                        passwordVariable: 'GHCR_TOKEN'
+                    string(
+                        credentialsId: 'railway-token',
+                        variable: 'RAILWAY_TOKEN'
                     )
                 ]) {
                     sh '''
                         set +x
-                        trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
 
-                        echo "$GHCR_TOKEN" | docker login ghcr.io \
-                            -u "$GHCR_USER" --password-stdin
-
-                        docker compose pull app
-                        docker compose up -d --no-deps app
+                        docker run --rm \
+                            -e RAILWAY_TOKEN \
+                            node:22-bookworm-slim \
+                            sh -c 'npx -y @railway/cli@latest redeploy --service c14-tickets-api --yes'
                     '''
                 }
             }
-        }
     }
-    post {
-
-        success {
-            echo 'Build success.'
-        }
-
-        failure {
-            echo 'Build failed.'
-        }
 
     }
 }
