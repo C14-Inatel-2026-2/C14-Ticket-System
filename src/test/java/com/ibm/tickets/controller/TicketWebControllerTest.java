@@ -1,6 +1,7 @@
 package com.ibm.tickets.controller;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,10 +20,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.ibm.tickets.controller.Web.TicketWebController;
 import com.ibm.tickets.dto.TicketResponse;
+import com.ibm.tickets.dto.UserOptionResponse;
 import com.ibm.tickets.exception.TicketNotInProjectException;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
 import com.ibm.tickets.service.TicketService;
+import com.ibm.tickets.service.UserService;
 
 /**
  * @author Rodrigo Fraga da Costa
@@ -36,6 +39,9 @@ public class TicketWebControllerTest {
 
     @MockitoBean
     private TicketService ticketService;
+
+    @MockitoBean
+    private UserService userService;
 
     private MockHttpSession session;
     private Long projectId;
@@ -56,6 +62,30 @@ public class TicketWebControllerTest {
                 .session(session))
                 .andExpect(status().isOk())
                 .andExpect(view().name("new-ticket"));
+    }
+
+    @Test
+    void shouldOpenNewTicketPageAndShowUserList() throws Exception {
+        List<UserOptionResponse> users = List.of(
+                new UserOptionResponse(
+                        1L,
+                        "Gabriel",
+                        "gabriel@example.com",
+                        "DEVELOPER"),
+                new UserOptionResponse(
+                        2L,
+                        "Mariana",
+                        "mariana@example.com",
+                        "PROJECT_MANAGER")
+        );
+
+        when(userService.getAllUsers()).thenReturn(users);
+
+        mockMvc.perform(get(baseUrl + "/new")
+                .session(session))
+                .andExpect(status().isOk())
+                .andExpect(view().name("new-ticket"))
+                .andExpect(model().attribute("users", users));
     }
 
     @Test 
@@ -81,6 +111,7 @@ public class TicketWebControllerTest {
             projectId,
             "Ticket System",
             "Mariana",
+            2L,
             TicketStatus.OPEN,
             TicketPriority.HIGH,
             OffsetDateTime.now(),
@@ -102,6 +133,7 @@ public class TicketWebControllerTest {
             projectId,
             "Ticket System",
             "Mariana",
+            2L,
             TicketStatus.OPEN,
             TicketPriority.HIGH,
             OffsetDateTime.now(),
@@ -124,6 +156,7 @@ public class TicketWebControllerTest {
             projectId,
             "Projeto de Teste",
             "Mariana",
+            2L,
             TicketStatus.OPEN,
             TicketPriority.HIGH,
             OffsetDateTime.now(),

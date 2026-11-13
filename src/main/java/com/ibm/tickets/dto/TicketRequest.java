@@ -13,6 +13,7 @@ import jakarta.validation.constraints.Size;
  * @param description ticket description
  * @param projectId related project identifier
  * @param assignee person responsible for the ticket
+ * @param assigneeUserId identifier of the assigned user
  * @param priority ticket priority
  * @author Gabriel Guimaraes
  */
@@ -31,6 +32,9 @@ public record TicketRequest(
         @NotBlank(message = "Assignee is required")
         @Size(max = 100, message = "Assignee must have at most 100 characters")
         String assignee,
+
+        @NotNull(message = "Assignee user ID is required")
+        Long assigneeUserId,
 
         @NotNull(message = "Priority is required")
         TicketPriority priority) {

@@ -2,8 +2,10 @@ package com.ibm.tickets.service;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.ibm.tickets.dto.TicketRequest;
 import com.ibm.tickets.dto.TicketResponse;
@@ -13,8 +15,10 @@ import com.ibm.tickets.model.Project;
 import com.ibm.tickets.model.Ticket;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
+import com.ibm.tickets.model.User;
 import com.ibm.tickets.repository.ProjectRepository;
 import com.ibm.tickets.repository.TicketRepository;
+import com.ibm.tickets.repository.UserRepository;
 
 
 /**
@@ -29,20 +33,34 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final TicketActivityService activityService;
     private final ProjectRepository projectRepository;
-
+    private final UserRepository userRepository;
+    
     public TicketService(
             TicketRepository ticketRepository,
             TicketActivityService activityService,
-            ProjectRepository projectRepository) {
+            ProjectRepository projectRepository,
+            UserRepository userRepository) {
         this.ticketRepository = ticketRepository;
         this.activityService = activityService;
         this.projectRepository = projectRepository;
+        this.userRepository = userRepository;
     }
     
     private Project findProjectById(Long projectId) {
         return projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Project not found: " + projectId));
+    }
+
+    private void assignUser(Ticket ticket, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Usuário responsável não encontrado"
+                ));
+
+        ticket.setAssigneeUser(user);
+        ticket.setAssignee(user.getName());
     }
 
     @Transactional
@@ -53,7 +71,7 @@ public class TicketService {
                 request.priority());
 
         ticket.setProjectReference(findProjectById(request.projectId()));
-        ticket.setAssignee(request.assignee());
+        assignUser(ticket, request.assigneeUserId());
 
         Ticket savedTicket = ticketRepository.saveAndFlush(ticket);
         return TicketResponse.from(savedTicket);
@@ -132,7 +150,7 @@ public class TicketService {
         ticket.setTitle(request.title());
         ticket.setDescription(request.description());
         ticket.setProjectReference(findProjectById(request.projectId()));
-        ticket.setAssignee(request.assignee());
+        assignUser(ticket, request.assigneeUserId());
         ticket.setPriority(request.priority());
 
         Ticket updatedTicket = ticketRepository.saveAndFlush(ticket);
