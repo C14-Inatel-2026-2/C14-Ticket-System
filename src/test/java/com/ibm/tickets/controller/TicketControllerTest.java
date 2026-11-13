@@ -63,7 +63,7 @@ class TicketControllerTest {
     void rejectsInvalidCreateBeforeCallingService(String field, String jsonValue) throws Exception {
         String json = """
                 {"title":"Title","description":"Description","projectId":1,
-                 "assignee":"Owner","priority":"HIGH"}
+                 "assignee":"Owner", "assigneeUserId": 1, "priority":"HIGH"}
                 """;
         json = json.replaceAll(
             "\"" + field + "\":(?:\"[^\"]*\"|null|\\d+)",
@@ -81,7 +81,7 @@ class TicketControllerTest {
         mockMvc.perform(post("/api/tickets").contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {"title":"Title","description":"Description","projectId":1,
-                         "assignee":"Owner","priority":"HIGH"}
+                         "assignee":"Owner", "assigneeUserId": 1, "priority":"HIGH"}
                         """))
                 .andExpect(status().isUnauthorized());
         verifyNoInteractions(ticketService);
@@ -127,6 +127,7 @@ class TicketControllerTest {
                 1L,
                 "Internal Systems",
                 "Gabriel",
+                1L,
                 TicketStatus.OPEN,
                 TicketPriority.HIGH,
                 now,
@@ -144,6 +145,7 @@ class TicketControllerTest {
                           "description": "The printer is not working",
                           "projectId": 1,
                           "assignee": "Gabriel",
+                          "assigneeUserId": 1,
                           "priority": "HIGH"
                         }
                         """))
@@ -174,6 +176,7 @@ class TicketControllerTest {
                           "description": "The printer is not working",
                           "projectId": 1,
                           "assignee": "Gabriel",
+                          "assigneeUserId": 1,
                           "priority": "HIGH"
                         }
                         """))
@@ -200,6 +203,7 @@ class TicketControllerTest {
                 1L,
                 "Internal Systems",
                 "Gabriel",
+                1L,
                 TicketStatus.OPEN,
                 TicketPriority.HIGH,
                 now,
@@ -232,6 +236,7 @@ class TicketControllerTest {
                 1L,
                 "Internal Systems",
                 "Gabriel",
+                1L,
                 TicketStatus.IN_PROGRESS,
                 TicketPriority.HIGH,
                 now,
@@ -285,6 +290,7 @@ class TicketControllerTest {
                 1L,
                 "Internal Systems",
                 "Gabriel",
+                1L,
                 TicketStatus.OPEN,
                 TicketPriority.HIGH,
                 now,
@@ -331,6 +337,7 @@ class TicketControllerTest {
                 1L,
                 "Internal Systems",
                 "Gabriel",
+                1L,
                 TicketStatus.OPEN,
                 TicketPriority.URGENT,
                 now,
@@ -350,6 +357,7 @@ class TicketControllerTest {
                           "description": "The printer continues to fail",
                           "projectId": 1,
                           "assignee": "Gabriel",
+                          "assigneeUserId": 1,
                           "priority": "URGENT"
                         }
                         """))
@@ -374,6 +382,7 @@ class TicketControllerTest {
             1L,
             "Internal Systems",
             "Gabriel",
+            1L,
             TicketStatus.OPEN,
             TicketPriority.HIGH,
             now,
@@ -401,6 +410,7 @@ class TicketControllerTest {
 							"description": "Updated description",
 							"projectId": 1,
 							"assignee": "Gabriel",
+                                                        "assigneeUserId": 1,
 							"priority": "HIGH"
 						}
 						"""))

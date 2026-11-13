@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.ibm.tickets.dto.TicketResponse;
 import com.ibm.tickets.service.TicketService;
+import com.ibm.tickets.service.UserService;
 
 
 /**
@@ -19,13 +20,16 @@ import com.ibm.tickets.service.TicketService;
 public class TicketWebController {
 
     private final TicketService ticketService;
+    private final UserService userService;
 
-    public TicketWebController(TicketService ticketService) {
+    public TicketWebController(TicketService ticketService, UserService userService) {
         this.ticketService = ticketService;
+        this.userService = userService;
     }
 
     @GetMapping("/new")
-    public String showCreateForm(@PathVariable Long projectId) {
+    public String showCreateForm(@PathVariable Long projectId, Model model) {
+        model.addAttribute("users", userService.getAllUsers());
         return "new-ticket";
     }
 
@@ -45,6 +49,7 @@ public class TicketWebController {
     public String showEditForm(@PathVariable Long projectId, @PathVariable Long ticketId, Model model){
         TicketResponse ticketResponse = ticketService.findByIdInProject(ticketId, projectId);
         model.addAttribute("ticket", ticketResponse);
+        model.addAttribute("users", userService.getAllUsers());
         return "ticket-edit";
     }
 }

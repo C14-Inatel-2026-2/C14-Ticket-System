@@ -17,7 +17,6 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import com.microsoft.playwright.Browser;
 import com.microsoft.playwright.BrowserContext;
@@ -71,6 +70,21 @@ class NewTicketBrowserTest {
         });
         respond(500, "text/plain", "unavailable");
         page.navigate(ORIGIN + "/project/3/tickets/new");
+        page.evaluate("""
+            () => {
+                const owner = document.getElementById('owner');
+
+                const user1 = new Option(
+                    'Pessoa de teste (teste@example.com)', '1');
+                user1.dataset.userName = 'Pessoa de teste';
+                owner.add(user1);
+
+                const user2 = new Option(
+                    'Outra pessoa (outra@example.com)', '2');
+                user2.dataset.userName = 'Outra pessoa';
+                owner.add(user2);
+            }
+        """);
     }
 
     @AfterEach
@@ -92,7 +106,7 @@ class NewTicketBrowserTest {
 
     private void fillValid() {
         page.locator("#title").fill("Impressora sem papel");
-        page.locator("#owner").fill("Pessoa de teste");
+        page.locator("#owner").selectOption("1");
         page.locator("#priority").selectOption("HIGH");
         page.locator("#description").fill("Descrição preservada");
     }
@@ -105,16 +119,21 @@ class NewTicketBrowserTest {
 
     private void submit() { page.locator("button[type=submit]").click(); }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"", "   "})
-    void rejectsMissingOwnerWithoutPosting(String value) {
+    @Test
+    void rejectsMissingOwnerWithoutPosting() {
         fillValid();
-        page.locator("#owner").fill(value);
+
+        page.locator("#owner").selectOption("");
+
         submit();
+
         assertThat(page.locator("#owner-error")).isVisible();
         assertThat(page.locator("#owner")).isFocused();
-        assertThat(page.locator("#owner")).hasAttribute("aria-invalid", "true");
-        assertThat(page.locator("#owner")).hasAttribute("aria-describedby", "owner-hint owner-error");
+        assertThat(page.locator("#owner"))
+                .hasAttribute("aria-invalid", "true");
+        assertThat(page.locator("#owner"))
+                .hasAttribute("aria-describedby", "owner-error");
+
         assertEquals(0, posts.get());
     }
 
@@ -130,7 +149,7 @@ class NewTicketBrowserTest {
     }
 
     static Stream<Arguments> textLimits() {
-        return Stream.of(Arguments.of("title", 150), Arguments.of("owner", 100));
+        return Stream.of(Arguments.of("title", 150));
     }
 
     private void assignRawValue(String field, String value) {
@@ -174,11 +193,11 @@ class NewTicketBrowserTest {
                   "assignee":"Assignee is required","title":"Title is required"}}
                 """);
         submit();
-        assertThat(page.locator("#owner-error")).containsText("Informe o responsável");
+        assertThat(page.locator("#owner-error")).containsText("Selecione um responsável");
         assertThat(page.locator("#title-error")).containsText("Informe o título");
-        assertThat(page.locator("#owner")).hasValue("Pessoa de teste");
+        assertThat(page.locator("#owner")).hasValue("1");
         assertThat(page.locator("#description")).hasValue("Descrição preservada");
-        page.locator("#owner").fill("Outra pessoa");
+        page.locator("#owner").selectOption("2");
         assertThat(page.locator("#owner-error")).isHidden();
         respond(201, "application/json", "{\"id\":1}");
         submit();
@@ -205,7 +224,7 @@ class NewTicketBrowserTest {
         submit();
         assertThat(page.locator("#form-feedback")).isVisible();
         assertThat(page.locator("#title")).hasValue("Impressora sem papel");
-        assertThat(page.locator("#owner")).hasValue("Pessoa de teste");
+        assertThat(page.locator("#owner")).hasValue("1");
         assertThat(page.locator("#description")).hasValue("Descrição preservada");
         assertThat(page).hasURL(ORIGIN + "/project/3/tickets/new");
         assertEquals(0, page.locator("#ticket-form img").count());
@@ -220,7 +239,7 @@ class NewTicketBrowserTest {
         page.route("**/api/tickets", route -> route.abort("failed"));
         submit();
         assertThat(page.locator("#form-feedback")).containsText("Seus dados foram mantidos");
-        assertThat(page.locator("#owner")).hasValue("Pessoa de teste");
+        assertThat(page.locator("#owner")).hasValue("1");
         assertThat(page).hasURL(ORIGIN + "/project/3/tickets/new");
         assertEquals(1, posts.get());
     }
@@ -236,5 +255,6 @@ class NewTicketBrowserTest {
 
         assertEquals(1, posts.get());
         assertTrue(payload.get().contains("\"projectId\":3"));
+        assertTrue(payload.get().contains("\"assigneeUserId\":1"));
     }
 }

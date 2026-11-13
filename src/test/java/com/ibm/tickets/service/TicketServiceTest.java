@@ -16,6 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.ibm.tickets.dto.TicketRequest;
 import com.ibm.tickets.dto.TicketResponse;
@@ -25,9 +26,11 @@ import com.ibm.tickets.model.Project;
 import com.ibm.tickets.model.Ticket;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
+import com.ibm.tickets.model.User;
+import com.ibm.tickets.model.UserRole;
 import com.ibm.tickets.repository.ProjectRepository;
 import com.ibm.tickets.repository.TicketRepository;
-
+import com.ibm.tickets.repository.UserRepository;
 
 /**
  * Unit tests for TicketService.
@@ -42,6 +45,9 @@ class TicketServiceTest {
 
     @Mock
     private ProjectRepository projectRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private TicketService ticketService;
@@ -60,6 +66,18 @@ class TicketServiceTest {
         return project;
     }
 
+	private User createUser(Long id, String name) {
+		User user = new User(
+				name,
+				name.toLowerCase() + "@example.com",
+				UserRole.DEVELOPER);
+
+		org.springframework.test.util.ReflectionTestUtils
+				.setField(user, "id", id);
+
+		return user;
+	}
+
     @Test
     void shouldCreateTicket() {
         TicketRequest request = new TicketRequest(
@@ -67,10 +85,12 @@ class TicketServiceTest {
                 "The printer is not working",
                 PROJECT_ID,
                 "Gabriel",
+				1L,
                 TicketPriority.HIGH);
 
         Project project = createProject(PROJECT_ID, "Internal Systems");
         when(projectRepository.findById(PROJECT_ID)).thenReturn(Optional.of(project));
+		when(userRepository.findById(1L)).thenReturn(Optional.of(createUser(1L, "Gabriel")));
 
         when(ticketRepository.saveAndFlush(any(Ticket.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -91,6 +111,9 @@ class TicketServiceTest {
                 () -> assertEquals(
                         "Gabriel",
                         response.assignee()),
+				() -> assertEquals(
+					1L,
+					response.assigneeUserId()),
                 () -> assertEquals(
                         TicketPriority.HIGH,
                         response.priority()));
@@ -226,7 +249,7 @@ class TicketServiceTest {
         verify(ticketRepository).findById(99L);
     }
 
-    
+
     @Test
     void shouldUpdateTicket() {
         Ticket ticket = createTicket(
@@ -238,11 +261,13 @@ class TicketServiceTest {
                 "Updated description",
                 UPDATED_PROJECT_ID,
                 "Mariana",
+				2L,
                 TicketPriority.MEDIUM);
-        
+
         Project updatedProject = createProject(UPDATED_PROJECT_ID, "Updated project");
-        
+
         when(projectRepository.findById(UPDATED_PROJECT_ID)).thenReturn(Optional.of(updatedProject));
+		when(userRepository.findById(2L)).thenReturn(Optional.of(createUser(2L, "Mariana")));
 
         when(ticketRepository.findById(1L))
                 .thenReturn(Optional.of(ticket));
@@ -267,6 +292,9 @@ class TicketServiceTest {
                 () -> assertEquals(
                         "Mariana",
                         response.assignee()),
+				() -> assertEquals(
+						2L,
+						response.assigneeUserId()),
                 () -> assertEquals(
                         TicketPriority.MEDIUM,
                         response.priority()));
@@ -379,27 +407,54 @@ class TicketServiceTest {
     }
 
 
-        @Test
-        void shouldNotRecordActivityWhenStatusDoesNotChange() {
-                Ticket ticket = createTicket(
-                        "Printer problem",
-                        TicketStatus.OPEN);
+	@Test
+	void shouldNotRecordActivityWhenStatusDoesNotChange() {
+			Ticket ticket = createTicket(
+					"Printer problem",
+					TicketStatus.OPEN);
 
-                when(ticketRepository.findById(1L))
-                        .thenReturn(Optional.of(ticket));
+			when(ticketRepository.findById(1L))
+					.thenReturn(Optional.of(ticket));
 
-                TicketResponse response = ticketService.updateStatus(
-                        1L,
-                        TicketStatus.OPEN,
-                        "admin"
-                );
+			TicketResponse response = ticketService.updateStatus(
+					1L,
+					TicketStatus.OPEN,
+					"admin"
+			);
 
-                assertEquals(TicketStatus.OPEN, response.status());
+			assertEquals(TicketStatus.OPEN, response.status());
 
-                verify(ticketRepository, never())
-                        .saveAndFlush(any(Ticket.class));
+			verify(ticketRepository, never())
+					.saveAndFlush(any(Ticket.class));
 
-                verifyNoInteractions(activityService);
-        }
+			verifyNoInteractions(activityService);
+	}
+	@Test
+	void shouldRejectNonexistentAssigneeUser() {
+		TicketRequest request = new TicketRequest(
+				"Test ticket",
+				"Test description",
+				PROJECT_ID,
+				"Unknown user",
+				999L,
+				TicketPriority.HIGH);
+
+		Project project = createProject(PROJECT_ID, "Internal Systems");
+
+		when(projectRepository.findById(PROJECT_ID))
+				.thenReturn(Optional.of(project));
+
+		when(userRepository.findById(999L))
+				.thenReturn(Optional.empty());
+
+		ResponseStatusException exception = assertThrows(
+				ResponseStatusException.class,
+				() -> ticketService.create(request));
+
+		assertEquals(400, exception.getStatusCode().value());
+
+		verify(ticketRepository, never())
+				.saveAndFlush(any(Ticket.class));
+	}
 
 }
