@@ -241,6 +241,14 @@ This refactoring reduces code duplication, improves maintainability, and consoli
 - **Tests** — `mvn verify` with 118 tests executed, 0 failures, 0 errors, and 0 skipped.
 - **PR** — [#63: Centralize ticket project validation](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/63).
 
+### Mariana Barude Pina — Centralizing Project Lookup
+
+- **Smell** — Duplicate Code: `ProjectService.update`, `ProjectService.delete`, and `ProjectService.getMemberIds` contained duplicated logic for retrieving a project by ID and handling cases where the project does not exist.
+- **Refactoring Applied** — Extract Method: extracted the common lookup logic into the private method `ProjectService.findProjectById`.
+- **Why** — eliminate duplicated code and centralize the responsibility for retrieving projects and handling not-found scenarios, improving maintainability and ensuring consistent behavior across service methods.
+- **Tests** — `mvn verify` with 121 tests executed, 0 failures, 0 errors, and 0 skipped.
+- **PR** — [#64: Centralize project lookup](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/64).
+
 ## Contributors
 
 Before contributing to the project, please read the [Contribution Guidelines](docs/contributing.md).

@@ -1,13 +1,5 @@
 package com.ibm.tickets.service;
 
-import com.ibm.tickets.dto.ProjectRequest;
-import com.ibm.tickets.dto.ProjectResponse;
-import com.ibm.tickets.model.Project;
-import com.ibm.tickets.model.User;
-import com.ibm.tickets.repository.ProjectRepository;
-import com.ibm.tickets.repository.TicketRepository;
-import com.ibm.tickets.repository.UserRepository;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,6 +8,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.ibm.tickets.dto.ProjectRequest;
+import com.ibm.tickets.dto.ProjectResponse;
+import com.ibm.tickets.model.Project;
+import com.ibm.tickets.model.User;
+import com.ibm.tickets.repository.ProjectRepository;
+import com.ibm.tickets.repository.TicketRepository;
+import com.ibm.tickets.repository.UserRepository;
 
 /**
  * Provides read-only access to the persisted project catalog.
@@ -48,6 +48,14 @@ public class ProjectService {
                 .toList();
     }
 
+    private Project findProjectById(Long projectId) {
+		return projectRepository.findById(projectId)
+				.orElseThrow(() -> new ResponseStatusException(
+						HttpStatus.NOT_FOUND,
+						"Project not found"
+				));
+	}
+
     public ProjectResponse getProject(Long id){
         return getProjects().stream()
                 .filter(project -> project.id().equals(id))
@@ -71,11 +79,7 @@ public class ProjectService {
 
     @Transactional 
     public ProjectResponse update(Long projectId, ProjectRequest request){
-        Project project = projectRepository.findById(projectId)
-            .orElseThrow(() -> new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Project not found"
-            ));
+        Project project = findProjectById(projectId);
 
         Set<User> members = validateMembers(request.membersIds());
 
@@ -91,12 +95,7 @@ public class ProjectService {
 
     @Transactional
     public void delete(Long projectId) {
-
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Project not found"
-                ));
+		Project project = findProjectById(projectId);
 
         long tickets = ticketRepository
                 .countByProjectReferenceId(projectId);
@@ -142,12 +141,7 @@ public class ProjectService {
 
     @Transactional(readOnly = true)
     public List<Long> getMemberIds(Long projectId) {
-
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Project not found"
-                ));
+		Project project = findProjectById(projectId);
 
         return project.getMembers()
                 .stream()
