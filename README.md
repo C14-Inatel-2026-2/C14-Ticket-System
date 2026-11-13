@@ -204,25 +204,34 @@ Jenkins CI is used to automatically validate builds and tests.
 - **Testes** — `mvn verify` com 97 testes na base e 99 após a extração, sem falhas. Os 10 testes de `TicketService` também passaram antes da extração.
 - **Pipeline** — o Jenkins da base estava em `error` no início. Conferir os checks do PR para comprovar a validação no CI.
 
-### Unified Ticket Activity History — PR #51 and #52
 
-The ticket history system was refactored to provide a centralized and consistent mechanism for tracking changes throughout a ticket's lifecycle.
+### Rodrigo Fraga da Costa — Removing legacy code
 
-**[PR #51](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/51) — Unified Activity History**
-- Introduced the `TicketActivity` entity, repository, and service.
-- Implemented activity tracking for status, priority, and assignee changes.
-- Integrated ticket comments into a unified chronological timeline.
-- Added the `GET /api/tickets/{id}/activities` endpoint.
-- Created Flyway migration V8 for the `ticket_activities` table.
+#### Smell
+- **Duplicate Code:** Ticket changes were tracked through separate history mechanisms.
+- **Obsolete Code:** The legacy `TicketStatusHistory` implementation was redundant.
 
-**[PR #52](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/52) — Legacy Status History Refactoring**
-- Removed the legacy `TicketStatusHistory` entity, repository, and DTO.
-- Replaced legacy status history recording with `TicketActivityService`.
-- Removed the deprecated `GET /api/tickets/{id}/history` endpoint.
-- Created Flyway migration V9 to preserve existing status history records and remove the obsolete database table.
-- Updated and expanded automated tests to validate activity recording, chronological ordering, REST API responses, and database migration.
+#### Refactor Applied
+- Introduced `TicketActivity` to centralize ticket activity tracking.
+- Unified status, priority, assignee changes, and comments into a chronological timeline.
+- Replaced legacy history recording with `TicketActivityService`.
+- Removed obsolete entities, DTOs, repositories, and endpoints.
+- Added Flyway migrations V8 and V9.
 
-This refactoring reduces code duplication, improves maintainability, and consolidates ticket activity tracking while preserving historical data.
+#### Why
+- Reduce code duplication.
+- Improve maintainability and consistency.
+- Preserve historical data while simplifying the architecture.
+
+#### Test
+- Unit tests for activity recording and ordering.
+- REST API tests for `GET /api/tickets/{id}/activities`.
+- Database migration tests to ensure historical data preservation.
+
+#### PR
+- [PR #51 — Unified Activity History](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/51)
+- [PR #52 — Legacy Status History Refactoring](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/52)
+
 
 ### Gabriel Guimaraes — mapeamento da timeline
 
