@@ -20,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.ibm.tickets.dto.TicketRequest;
 import com.ibm.tickets.dto.TicketResponse;
 import com.ibm.tickets.exception.TicketNotFoundException;
+import com.ibm.tickets.exception.TicketNotInProjectException;
 import com.ibm.tickets.model.Project;
 import com.ibm.tickets.model.Ticket;
 import com.ibm.tickets.model.TicketPriority;
@@ -168,6 +169,63 @@ class TicketServiceTest {
 
         verify(ticketRepository).findById(99L);
     }
+
+    @Test
+    void shouldFindTicketWhenItBelongsToProject() {
+        Ticket ticket = createTicket("Printer problem", TicketStatus.OPEN);
+
+        org.springframework.test.util.ReflectionTestUtils.setField(ticket, "id", 1L);
+
+        ticket.setProjectReference(createProject(PROJECT_ID, "Internal Systems"));
+
+        when(ticketRepository.findById(1L)).thenReturn(Optional.of(ticket));
+
+        TicketResponse response = ticketService.findByIdInProject(1L, PROJECT_ID);
+
+        assertEquals(1L, response.id());
+        assertEquals(PROJECT_ID, response.projectId());
+
+        verify(ticketRepository).findById(1L);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenTicketBelongsToAnotherProject() {
+        Ticket ticket = createTicket("Printer problem", TicketStatus.OPEN);
+        ticket.setProjectReference(createProject(UPDATED_PROJECT_ID, "Other project"));
+
+        when(ticketRepository.findById(1L)).thenReturn(Optional.of(ticket));
+
+        assertThrows(
+                TicketNotInProjectException.class,
+                () -> ticketService.findByIdInProject(1L, PROJECT_ID));
+
+        verify(ticketRepository).findById(1L);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenTicketHasNoProject() {
+        Ticket ticket = createTicket("Printer problem", TicketStatus.OPEN);
+
+        when(ticketRepository.findById(1L)).thenReturn(Optional.of(ticket));
+
+        assertThrows(
+                TicketNotInProjectException.class,
+                () -> ticketService.findByIdInProject(1L, PROJECT_ID));
+
+        verify(ticketRepository).findById(1L);
+    }
+
+    @Test
+    void shouldThrowTicketNotFoundWhenTicketDoesNotExistInProject() {
+        when(ticketRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(
+                TicketNotFoundException.class,
+                () -> ticketService.findByIdInProject(99L, PROJECT_ID));
+
+        verify(ticketRepository).findById(99L);
+    }
+
     
     @Test
     void shouldUpdateTicket() {

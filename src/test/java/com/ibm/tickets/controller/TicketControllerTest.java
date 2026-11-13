@@ -34,6 +34,7 @@ import com.ibm.tickets.controller.Api.TicketController;
 import com.ibm.tickets.dto.TicketRequest;
 import com.ibm.tickets.dto.TicketResponse;
 import com.ibm.tickets.exception.TicketNotFoundException;
+import com.ibm.tickets.exception.TicketNotInProjectException;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
 import com.ibm.tickets.service.TicketService;
@@ -235,7 +236,7 @@ class TicketControllerTest {
                 TicketPriority.HIGH,
                 now,
                 now);
-        when(ticketService.findById(1L)).thenReturn(response);
+        when(ticketService.findByIdInProject(1L, 1L)).thenReturn(response);
         when(ticketService.updateStatus(
                 1L,
                 TicketStatus.IN_PROGRESS,
@@ -261,8 +262,7 @@ class TicketControllerTest {
     void shouldReturnNotFoundWhenTicketDoesNotExist()
             throws Exception {
 
-        when(ticketService.findById(99L))
-                .thenThrow(new TicketNotFoundException(99L));
+        when(ticketService.findByIdInProject(99L, 1L)).thenThrow(new TicketNotFoundException(99L));
 
         mockMvc.perform(get("/api/tickets/99?projectId=1")
                 .session(session))
@@ -290,8 +290,7 @@ class TicketControllerTest {
                 now,
                 now);
 
-        when(ticketService.findById(1L))
-                .thenReturn(response);
+        when(ticketService.findByIdInProject(1L, 1L)).thenReturn(response);
 
         mockMvc.perform(get("/api/tickets/1?projectId=1")
                 .session(session))
@@ -311,27 +310,13 @@ class TicketControllerTest {
 
 	@Test
 	void shouldReturnNotFoundWhenTicketBelongsToAnotherProject()throws Exception {
-		OffsetDateTime now = OffsetDateTime.parse("2026-09-18T15:00:00Z");
-
-		TicketResponse response = new TicketResponse(
-			1L,
-			"Printer problem",
-			"The printer is not working",
-			2L,
-			"OpenLift",
-			"Gabriel",
-			TicketStatus.OPEN,
-			TicketPriority.HIGH,
-			now,
-			now);
-
-		when(ticketService.findById(1L)).thenReturn(response);
+		when(ticketService.findByIdInProject(1L, 1L)).thenThrow(new TicketNotInProjectException());
 
 		mockMvc.perform(get("/api/tickets/1?projectId=1")
 				.session(session))
 				.andExpect(status().isNotFound());
 
-		verify(ticketService).findById(1L);
+		verify(ticketService).findByIdInProject(1L, 1L);
 	}
 
     @Test
@@ -350,7 +335,7 @@ class TicketControllerTest {
                 TicketPriority.URGENT,
                 now,
                 now);
-        when(ticketService.findById(1L)).thenReturn(response);
+        when(ticketService.findByIdInProject(1L, 1L)).thenReturn(response);
         when(ticketService.update(
                 eq(1L),
                 any(TicketRequest.class), eq("admin")))
@@ -394,7 +379,7 @@ class TicketControllerTest {
             now,
             now);
 
-    	when(ticketService.findById(1L)).thenReturn(response);
+    	when(ticketService.findByIdInProject(1L, 1L)).thenReturn(response);
 
         mockMvc.perform(delete("/api/tickets/1?projectId=1")
                 .session(session))
@@ -404,47 +389,8 @@ class TicketControllerTest {
     }
 
 	@Test
-	void shouldNotFindTicketFromAnotherProject() throws Exception {
-		OffsetDateTime now = OffsetDateTime.parse("2026-09-18T15:00:00Z");
-
-		TicketResponse response = new TicketResponse(
-			1L,
-			"Printer problem",
-			"The printer is not working",
-			2L,
-			"OpenLift",
-			"Gabriel",
-			TicketStatus.OPEN,
-			TicketPriority.HIGH,
-			now,
-			now);
-
-		when(ticketService.findById(1L)).thenReturn(response);
-
-		mockMvc.perform(get("/api/tickets/1?projectId=1")
-				.session(session))
-				.andExpect(status().isNotFound());
-
-		verify(ticketService).findById(1L);
-	}
-
-	@Test
 	void shouldNotUpdateTicketFromAnotherProject() throws Exception {
-		OffsetDateTime now = OffsetDateTime.parse("2026-09-18T15:00:00Z");
-
-		TicketResponse response = new TicketResponse(
-			1L,
-			"Printer problem",
-			"The printer is not working",
-			2L,
-			"OpenLift",
-			"Gabriel",
-			TicketStatus.OPEN,
-			TicketPriority.HIGH,
-			now,
-			now);
-
-		when(ticketService.findById(1L)).thenReturn(response);
+		when(ticketService.findByIdInProject(1L, 1L)).thenThrow(new TicketNotInProjectException());
 
 		mockMvc.perform(put("/api/tickets/1?projectId=1")
 				.session(session)
@@ -460,26 +406,12 @@ class TicketControllerTest {
 						"""))
 				.andExpect(status().isNotFound());
 
-		verify(ticketService).findById(1L);
+		verify(ticketService).findByIdInProject(1L, 1L);
 	}
 
 	@Test
 	void shouldNotChangeStatusOfTicketFromAnotherProject()throws Exception {
-		OffsetDateTime now = OffsetDateTime.parse("2026-09-18T15:00:00Z");
-
-		TicketResponse response = new TicketResponse(
-			1L,
-			"Printer problem",
-			"The printer is not working",
-			2L,
-			"OpenLift",
-			"Gabriel",
-			TicketStatus.OPEN,
-			TicketPriority.HIGH,
-			now,
-			now);
-
-		when(ticketService.findById(1L)).thenReturn(response);
+		when(ticketService.findByIdInProject(1L, 1L)).thenThrow(new TicketNotInProjectException());
 
 		mockMvc.perform(patch("/api/tickets/1/status?projectId=1")
 				.session(session)
@@ -491,32 +423,18 @@ class TicketControllerTest {
 						"""))
 				.andExpect(status().isNotFound());
 
-		verify(ticketService).findById(1L);
+		verify(ticketService).findByIdInProject(1L, 1L);
 	}
 
 	@Test
 	void shouldNotDeleteTicketFromAnotherProject() throws Exception {
-		OffsetDateTime now = OffsetDateTime.parse("2026-09-18T15:00:00Z");
-
-		TicketResponse response = new TicketResponse(
-			1L,
-			"Printer problem",
-			"The printer is not working",
-			2L,
-			"OpenLift",
-			"Gabriel",
-			TicketStatus.OPEN,
-			TicketPriority.HIGH,
-			now,
-			now);
-
-		when(ticketService.findById(1L)).thenReturn(response);
+		when(ticketService.findByIdInProject(1L, 1L)).thenThrow(new TicketNotInProjectException());
 
 		mockMvc.perform(delete("/api/tickets/1?projectId=1")
 				.session(session))
 				.andExpect(status().isNotFound());
 
-		verify(ticketService).findById(1L);
+		verify(ticketService).findByIdInProject(1L, 1L);
 	}
 
 
