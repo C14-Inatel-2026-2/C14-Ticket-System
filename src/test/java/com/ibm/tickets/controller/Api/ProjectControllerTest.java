@@ -4,6 +4,8 @@ package com.ibm.tickets.controller.Api;
 import com.ibm.tickets.dto.ProjectRequest;
 import com.ibm.tickets.dto.ProjectResponse;
 import com.ibm.tickets.model.UserRole;
+import com.ibm.tickets.repository.TicketRepository;
+import com.ibm.tickets.service.ProjectAccessService;
 import com.ibm.tickets.service.ProjectService;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +36,10 @@ class ProjectControllerTest {
 
     @MockitoBean
     private ProjectService projectService;
+
+    @MockitoBean
+    private ProjectAccessService projectAccessService;
+
 
     private MockHttpSession session;
 

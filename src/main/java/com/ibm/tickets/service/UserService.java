@@ -1,5 +1,6 @@
 package com.ibm.tickets.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -83,6 +84,19 @@ public class UserService {
             .toList();
     }
 
+    public List<UserOptionResponse> getAllUsersByIds(List<Long> usersIds){
+        List<UserOptionResponse> response = new ArrayList<>();
+        for(Long id : usersIds){
+            User user = userRepository.findById(id)
+                                .orElseThrow(() -> new ResponseStatusException(
+                                    HttpStatus.NOT_FOUND,
+                                    "User not found"
+                                ));
+           response.add(toResponse(user));
+        }
+        return response;
+    }
+    
     @Transactional 
     public UserOptionResponse createUser(CreateUserRequest request){
         String name = request.name();

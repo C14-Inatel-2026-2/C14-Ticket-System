@@ -19,8 +19,10 @@ import org.springframework.web.server.ResponseStatusException;
 import com.ibm.tickets.dto.TicketRequest;
 import com.ibm.tickets.dto.TicketResponse;
 import com.ibm.tickets.dto.TicketStatusRequest;
+import com.ibm.tickets.model.Project;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
+import com.ibm.tickets.service.ProjectAccessService;
 import com.ibm.tickets.service.TicketService;
 
 import jakarta.servlet.http.HttpSession;
@@ -36,15 +38,20 @@ import jakarta.validation.Valid;
 public class TicketController {
 
     private final TicketService ticketService;
+    private final ProjectAccessService projectAccessService;
 
-    public TicketController(TicketService ticketService) {
+    public TicketController(TicketService ticketService, ProjectAccessService projectAccessService) {
         this.ticketService = ticketService;
+        this.projectAccessService = projectAccessService;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public TicketResponse create(
-            @Valid @RequestBody TicketRequest request) {
+            @Valid @RequestBody TicketRequest request,
+                HttpSession session) {
+        projectAccessService.checkAccess(request.projectId(), session);
+
         return ticketService.create(request);
     }
 
@@ -52,13 +59,30 @@ public class TicketController {
     public List<TicketResponse> findAll(
         @RequestParam(required = false) Long projectId,
         @RequestParam(required = false) TicketStatus status,
-        @RequestParam(required = false) TicketPriority priority) {
+        @RequestParam(required = false) TicketPriority priority,
+        HttpSession session) {
+
+        if(projectId == null){
+            if(!projectAccessService.hasGlobalAccess(session)){
+                throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Project Id is required for this user"
+                );
+            }
+        }else{
+            projectAccessService.checkAccess(projectId, session);
+        }
 
         return ticketService.findAll(projectId, status, priority);
     }
 
     @GetMapping("/{id}")
-    public TicketResponse findById(@PathVariable Long id, @RequestParam Long projectId) {
+    public TicketResponse findById(@PathVariable Long id, @RequestParam Long projectId,
+        HttpSession session
+    ) {
+
+        projectAccessService.checkAccess(projectId, session);
+
         return ticketService.findByIdInProject(id, projectId);
     }
 
@@ -68,6 +92,8 @@ public class TicketController {
             @RequestParam Long projectId,
             @Valid @RequestBody TicketRequest request,
             HttpSession session) {
+
+        projectAccessService.checkAccess(projectId, session);
         
         ticketService.findByIdInProject(id, projectId);
 
@@ -86,13 +112,18 @@ public class TicketController {
             @Valid @RequestBody TicketStatusRequest request,
             HttpSession session) {
 
+        projectAccessService.checkAccess(projectId, session);
+
         ticketService.findByIdInProject(id, projectId);
         return ticketService.updateStatus(id, request.status(), getAuthor(session));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id, @RequestParam Long projectId) {
+    public void delete(@PathVariable Long id, @RequestParam Long projectId,
+        HttpSession session
+    ) {
+        projectAccessService.checkAccess(projectId, session);
         
         ticketService.findByIdInProject(id, projectId);
         ticketService.delete(id);
