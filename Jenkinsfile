@@ -2,6 +2,14 @@ pipeline {
 
     agent any
 
+    parameters {
+        choice(
+            name: 'DEPLOY_ENV',
+            choices: ['staging', 'production', 'both'],
+            description: 'Select the deployment environment'
+        )
+    }
+
     stages {
 
         stage('Checkout') {
@@ -68,6 +76,7 @@ pipeline {
                     )
                 ]){
                     sh '''
+                        set -eu
                         set +x
                         trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
                         echo "$GHCR_TOKEN" | docker login ghcr.io \
@@ -83,9 +92,49 @@ pipeline {
                 }
             }
         }
-        stage('Deploy to Railway') {
-        when {
-            branch 'main'
+        stage('Deploy to Railway - Staging'){
+            when{
+                allOf{
+                    branch 'main'
+                    expression {
+                        params.DEPLOY_ENV in ['staging', 'both']
+                    }
+                }
+            }
+
+            steps{
+                withCredentials([
+                    string(
+                        credentialsId: 'railway-staging-token',
+                        variable: 'RAILWAY_TOKEN'
+                    )
+                ]){
+                    sh '''
+                        set -eu
+                        set +x
+
+                        docker run --rm \
+                        -e RAILWAY_TOKEN \
+                        -e IMAGE_TAG="$BUILD_NUMBER" \
+                        node:22-bookworm-slim \
+                        sh -ec '
+                            npx -y @railway/cli@latest service source connect \
+                            --image "ghcr.io/c14-inatel-2026-2/c14-ticket-system:$IMAGE_TAG" \
+                            --service c14-tickets-api \
+                            --environment staging
+                        '
+                    '''
+                }
+            }
+        }
+        stage('Deploy to Railway - Production') {
+        when{
+                allOf{
+                    branch 'main'
+                    expression {
+                        params.DEPLOY_ENV in ['production', 'both']
+                    }
+                }
         }
 
             steps {
@@ -96,12 +145,19 @@ pipeline {
                     )
                 ]) {
                     sh '''
+                        set -eu
                         set +x
 
                         docker run --rm \
                             -e RAILWAY_TOKEN \
+                            -e IMAGE_TAG="$BUILD_NUMBER" \
                             node:22-bookworm-slim \
-                            sh -c 'npx -y @railway/cli@latest redeploy --service c14-tickets-api --yes'
+                            sh -ec '
+                            npx -y @railway/cli@latest service source connect \
+                            --image "ghcr.io/c14-inatel-2026-2/c14-ticket-system:$IMAGE_TAG" \
+                            --service c14-tickets-api \
+                            --environment production
+                        '
                     '''
                 }
             }
