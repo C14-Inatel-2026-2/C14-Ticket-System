@@ -28,7 +28,7 @@ public class UserPermissionInterceptor implements HandlerInterceptor{
             boolean createUser = "POST".equals(method) 
                                         && path.equals("/api/users");
             boolean deleteUser = "DELETE".equals(method)
-                                        && path.equals("/api/users/\\d+");
+                                        && path.matches("/api/users/\\d+");
             boolean managementPage = "GET".equals(method)
                                         && path.equals("/users/manage");
 
