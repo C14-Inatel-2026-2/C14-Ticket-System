@@ -1,5 +1,6 @@
 package com.ibm.tickets.model;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
@@ -63,6 +64,9 @@ public class Ticket {
 
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
+
+    @Column(name = "due_date")
+    private LocalDate dueDate;
 
     protected Ticket() {
     }
@@ -168,4 +172,13 @@ public class Ticket {
     public void setAssigneeUser(User user){
         this.assigneeUser = user;
     }
+
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
+    }
+
 }

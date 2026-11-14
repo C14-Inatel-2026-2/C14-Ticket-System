@@ -1,5 +1,6 @@
 package com.ibm.tickets.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -72,6 +73,7 @@ public class TicketService {
 
         ticket.setProjectReference(findProjectById(request.projectId()));
         assignUser(ticket, request.assigneeUserId());
+        ticket.setDueDate(request.dueDate());
 
         Ticket savedTicket = ticketRepository.saveAndFlush(ticket);
         return TicketResponse.from(savedTicket);
@@ -146,12 +148,14 @@ public class TicketService {
 
         String oldAssignee = ticket.getAssignee();
         String oldPriority = ticket.getPriority().name();
+        LocalDate oldDueDate = ticket.getDueDate();
 
         ticket.setTitle(request.title());
         ticket.setDescription(request.description());
         ticket.setProjectReference(findProjectById(request.projectId()));
         assignUser(ticket, request.assigneeUserId());
         ticket.setPriority(request.priority());
+        ticket.setDueDate(request.dueDate());
 
         Ticket updatedTicket = ticketRepository.saveAndFlush(ticket);
 
@@ -167,6 +171,14 @@ public class TicketService {
                                "PRIORITY_CHANGED",
                                oldPriority,
                                updatedTicket.getPriority().name());
+
+        activityService.record(updatedTicket,
+                               author,
+                               "DUE_DATE_CHANGED",
+                               oldDueDate == null ? null : oldDueDate.toString(),
+                               updatedTicket.getDueDate() == null ? null : updatedTicket.getDueDate().toString()
+        );
+
 
         return TicketResponse.from(updatedTicket);
     }

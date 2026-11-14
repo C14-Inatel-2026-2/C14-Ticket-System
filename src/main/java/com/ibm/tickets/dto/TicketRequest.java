@@ -1,5 +1,7 @@
 package com.ibm.tickets.dto;
 
+import java.time.LocalDate;
+
 import com.ibm.tickets.model.TicketPriority;
 
 import jakarta.validation.constraints.NotBlank;
@@ -15,6 +17,7 @@ import jakarta.validation.constraints.Size;
  * @param assignee person responsible for the ticket
  * @param assigneeUserId identifier of the assigned user
  * @param priority ticket priority
+ * @param dueDate ticket due date, if defined
  * @author Gabriel Guimaraes
  */
 public record TicketRequest(
@@ -37,5 +40,18 @@ public record TicketRequest(
         Long assigneeUserId,
 
         @NotNull(message = "Priority is required")
-        TicketPriority priority) {
+        TicketPriority priority,
+        LocalDate dueDate) {
+
+        public TicketRequest(
+                String title,
+                String description,
+                Long projectId,
+                String assignee,
+                Long assigneeUserId,
+                TicketPriority priority) {
+
+                this(title, description, projectId,
+                assignee, assigneeUserId, priority, null);
+        }
 }
