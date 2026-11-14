@@ -25,6 +25,8 @@ import com.ibm.tickets.dto.UserOptionResponse;
 import com.ibm.tickets.exception.TicketNotInProjectException;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
+import com.ibm.tickets.repository.TicketRepository;
+import com.ibm.tickets.service.ProjectAccessService;
 import com.ibm.tickets.service.ProjectService;
 import com.ibm.tickets.service.TicketService;
 import com.ibm.tickets.service.UserService;
@@ -47,6 +49,13 @@ public class TicketWebControllerTest {
 
     @MockitoBean
     private ProjectService projectService;
+
+    @MockitoBean
+    private ProjectAccessService projectAccessService;
+
+
+    @MockitoBean
+    private TicketRepository ticketRepository;
 
     private MockHttpSession session;
     private Long projectId;

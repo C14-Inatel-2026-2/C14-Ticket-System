@@ -5,8 +5,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.ibm.tickets.exception.TicketNotFoundException;
+import com.ibm.tickets.model.Ticket;
 import com.ibm.tickets.model.UserRole;
 import com.ibm.tickets.repository.ProjectRepository;
+import com.ibm.tickets.repository.TicketRepository;
 
 import jakarta.servlet.http.HttpSession;
 
@@ -18,9 +21,13 @@ import jakarta.servlet.http.HttpSession;
 public class ProjectAccessService {
 
     private final ProjectRepository projectRepository;
+    private final TicketRepository ticketRepository;
 
-    public ProjectAccessService(ProjectRepository projectRepository) {
+    public ProjectAccessService(ProjectRepository projectRepository,
+        TicketRepository ticketRepository
+    ) {
         this.projectRepository = projectRepository;
+        this.ticketRepository = ticketRepository;
     }
 
     public boolean hasGlobalAccess(HttpSession session) {
@@ -82,6 +89,28 @@ public class ProjectAccessService {
             );
         }
     }
+
+
+    public void checkTicketAccess(
+            Long ticketId,
+            HttpSession session) {
+
+        Ticket ticket = ticketRepository.findById(ticketId)
+            .orElseThrow(() -> new TicketNotFoundException(ticketId));
+
+        if (ticket.getProjectReference() == null) {
+            throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND,
+                "Ticket has no associated project"
+            );
+        }
+
+        checkAccess(
+            ticket.getProjectReference().getId(),
+            session
+        );
+    }
+
 
     private UserRole getRole(HttpSession session) {
         if (session == null

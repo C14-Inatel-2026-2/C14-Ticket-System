@@ -33,14 +33,11 @@ public class ProjectAccessInterceptor implements HandlerInterceptor {
     );
 
     private final ProjectAccessService projectAccessService;
-    private final TicketRepository ticketRepository;
 
     public ProjectAccessInterceptor(
-            ProjectAccessService projectAccessService,
-            TicketRepository ticketRepository) {
+            ProjectAccessService projectAccessService) {
 
         this.projectAccessService = projectAccessService;
-        this.ticketRepository = ticketRepository;
     }
 
     @Override
@@ -65,28 +62,13 @@ public class ProjectAccessInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        Matcher resourceMatcher =
-            TICKET_RESOURCES.matcher(path);
+        Matcher resourceMatcher = TICKET_RESOURCES.matcher(path);
 
         if (resourceMatcher.matches()) {
-            Long ticketId = Long.valueOf(
-                resourceMatcher.group(1)
-            );
+            Long ticketId = Long.valueOf(resourceMatcher.group(1));
 
-            Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() ->
-                    new TicketNotFoundException(ticketId)
-                );
-
-            if (ticket.getProjectReference() == null) {
-                throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Ticket has no associated project"
-                );
-            }
-
-            projectAccessService.checkAccess(
-                ticket.getProjectReference().getId(),
+            projectAccessService.checkTicketAccess(
+                ticketId,
                 request.getSession(false)
             );
         }
