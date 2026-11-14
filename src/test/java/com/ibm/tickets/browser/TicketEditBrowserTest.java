@@ -98,9 +98,26 @@ class TicketEditBrowserTest {
         );
 
         page.navigate(ORIGIN + "/project/3/tickets/2/edit");
+        page.evaluate("""
+            () => {
+                const owner = document.getElementById('owner');
+
+                const mariana = new Option(
+                    'Mariana (mariana@example.com)', '2');
+                mariana.dataset.userName = 'Mariana';
+                owner.add(mariana);
+
+                const outraPessoa = new Option(
+                    'Outra pessoa (outra@example.com)', '3');
+                outraPessoa.dataset.userName = 'Outra pessoa';
+                owner.add(outraPessoa);
+
+                owner.value = '2';
+            }
+        """);
 
         page.locator("#title").fill("Teste de edição");
-        page.locator("#owner").fill("Mariana");
+        page.locator("#owner").selectOption("2");
         page.locator("#priority").selectOption("HIGH");
         page.locator("#description").fill("Descrição original do ticket");
     }
@@ -139,7 +156,7 @@ class TicketEditBrowserTest {
 
     private void fillValid() {
         page.locator("#title").fill("Teste de edição");
-        page.locator("#owner").fill("Mariana");
+        page.locator("#owner").selectOption("2");
         page.locator("#priority").selectOption("HIGH");
         page.locator("#description").fill("Descrição original do ticket");
     }
@@ -163,8 +180,7 @@ class TicketEditBrowserTest {
     
     static Stream<Arguments> textLimits() {
         return Stream.of(
-                Arguments.of("title", 150),
-                Arguments.of("owner", 100)
+                Arguments.of("title", 150)
         );
     }
 
@@ -212,7 +228,7 @@ class TicketEditBrowserTest {
     @Test
     void rejectsAllEmptyRequiredFieldsWithoutUpdating() {
         page.locator("#title").fill("");
-        page.locator("#owner").fill("");
+        page.locator("#owner").selectOption("");
         page.locator("#priority").selectOption("");
         page.locator("#description").fill("");
 
@@ -246,11 +262,11 @@ class TicketEditBrowserTest {
 
     @Test
     void rejectsMissingOwnerWithoutUpdating() {
-        page.locator("#owner").fill("");
+        page.locator("#owner").selectOption("");
 
         submit();
 
-        assertThat(page.locator("#owner-error")).containsText("Informe o responsável.");
+        assertThat(page.locator("#owner-error")).containsText("Selecione um responsável.");
         assertThat(page.locator("#owner")).isFocused();
         assertThat(page.locator("#owner")).hasAttribute("aria-invalid", "true");
 
@@ -298,14 +314,14 @@ class TicketEditBrowserTest {
 
         submit();
 
-        assertThat(page.locator("#owner-error")).containsText("Informe o responsável.");
+        assertThat(page.locator("#owner-error")).containsText("Selecione um responsável.");
         assertThat(page.locator("#title-error")).containsText("Informe o título.");
-        assertThat(page.locator("#owner")).hasValue("Mariana");
+        assertThat(page.locator("#owner")).hasValue("2");
         assertThat(page.locator("#description")).hasValue("Descrição original do ticket");
 
         assertEquals(1, puts.get());
 
-        page.locator("#owner").fill("Outra pessoa");
+        page.locator("#owner").selectOption("3");
 
         assertThat(page.locator("#owner-error")).isHidden();
 
@@ -339,7 +355,7 @@ class TicketEditBrowserTest {
 
         assertThat(page.locator("#form-feedback")).isVisible();
         assertThat(page.locator("#title")).hasValue("Teste de edição");
-        assertThat(page.locator("#owner")).hasValue("Mariana");
+        assertThat(page.locator("#owner")).hasValue("2");
         assertThat(page.locator("#description")).hasValue("Descrição original do ticket");
         assertThat(page).hasURL(ORIGIN + "/project/3/tickets/2/edit");
 
@@ -368,7 +384,7 @@ class TicketEditBrowserTest {
 
         assertThat(page.locator("#form-feedback")).containsText("Seus dados foram mantidos");
         assertThat(page.locator("#title")).hasValue("Teste de edição");
-        assertThat(page.locator("#owner")).hasValue("Mariana");
+        assertThat(page.locator("#owner")).hasValue("2");
         assertThat(page).hasURL(ORIGIN + "/project/3/tickets/2/edit");
 
         assertEquals(1, puts.get());
@@ -388,6 +404,7 @@ class TicketEditBrowserTest {
         assertTrue(payload.get().contains("\"title\":\"Teste de edição\""));
         assertTrue(payload.get().contains("\"projectId\":3"));
         assertTrue(payload.get().contains("\"assignee\":\"Mariana\""));
+        assertTrue(payload.get().contains("\"assigneeUserId\":2"));
         assertTrue(payload.get().contains("\"priority\":\"HIGH\""));
         assertTrue(payload.get().contains("\"description\":\"Descrição original do ticket\""));
 
@@ -397,7 +414,7 @@ class TicketEditBrowserTest {
     @Test
     void clearsFieldErrorsWhenValuesAreCorrected() {
         page.locator("#title").fill("");
-        page.locator("#owner").fill("");
+        page.locator("#owner").selectOption("");
         page.locator("#priority").selectOption("");
         page.locator("#description").fill("");
 
@@ -410,7 +427,7 @@ class TicketEditBrowserTest {
         }
 
         page.locator("#title").fill("Título corrigido");
-        page.locator("#owner").fill("Mariana");
+        page.locator("#owner").selectOption("2");
         page.locator("#priority").selectOption("HIGH");
         page.locator("#description").fill("Descrição corrigida");
 
@@ -418,7 +435,8 @@ class TicketEditBrowserTest {
                 "title", "owner", "priority", "description"
         }) {
             assertThat(page.locator("#" + field + "-error")).isHidden();
-            assertThat(page.locator("#" + field)).not().hasAttribute("aria-invalid", "true");
+            assertThat(page.locator("#" + field))
+                    .not().hasAttribute("aria-invalid", "true");
         }
 
         assertEquals(0, puts.get());

@@ -1,18 +1,25 @@
 package com.ibm.tickets.service;
 
-import com.ibm.tickets.dto.ProjectResponse;
-import com.ibm.tickets.repository.ProjectCatalogView;
-import com.ibm.tickets.repository.ProjectRepository;
 import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
+import com.ibm.tickets.dto.ProjectRequest;
+import com.ibm.tickets.dto.ProjectResponse;
+import com.ibm.tickets.repository.ProjectCatalogView;
+import com.ibm.tickets.repository.ProjectRepository;
+import com.ibm.tickets.repository.TicketRepository;
+import com.ibm.tickets.repository.UserRepository;
 
 /**
  * Tests project catalog mapping independently of the web layer.
@@ -22,6 +29,12 @@ import static org.mockito.Mockito.when;
 class ProjectServiceTest {
     @Mock
     private ProjectRepository repository;
+
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private TicketRepository ticketRepository;
 
     @InjectMocks
     private ProjectService service;
@@ -53,6 +66,43 @@ class ProjectServiceTest {
 
         assertThrows(ArithmeticException.class, service::getProjects);
     }
+
+    @Test
+    void throwsNotFoundWhenUpdatingNonExistingProject() {
+        when(repository.findById(99L)).thenReturn(Optional.empty());
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> service.update(99L, new ProjectRequest(
+                        "Project", "Description", List.of()))
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+    }
+
+    @Test
+    void throwsNotFoundWhenDeletingNonExistingProject() {
+        when(repository.findById(99L)).thenReturn(Optional.empty());
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> service.delete(99L)
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+    }
+
+    @Test
+    void throwsNotFoundWhenGettingMembersOfNonExistingProject() {
+        when(repository.findById(99L)).thenReturn(Optional.empty());
+
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> service.getMemberIds(99L)
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+}
 
     private ProjectCatalogView catalogRow(
             Long id,

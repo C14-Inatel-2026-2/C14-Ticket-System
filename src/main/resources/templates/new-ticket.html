@@ -47,14 +47,22 @@
             <div class="form-group">
                 <label for="owner">Responsável</label>
 
-                <input
-                    type="text"
-                    id="owner" aria-describedby="owner-hint owner-error" maxlength="100"
+                <select
+                    id="owner"
                     name="owner"
-                    placeholder="Nome do responsável"
+                    aria-describedby="owner-error"
                     required
                 >
-                <p id="owner-hint" class="field-hint">Máximo de 100 caracteres.</p>
+                    <option value="">Selecione um responsável</option>
+
+                    <option
+                        th:each="user : ${users}"
+                        th:value="${user.id}"
+                        th:text="${user.name + ' (' + user.email + ')'}"
+                        th:attr="data-user-name=${user.name}"
+                    ></option>
+                </select>
+
                 <p id="owner-error" class="field-error" hidden></p>
             </div>
 
@@ -107,7 +115,7 @@
     const feedback = document.getElementById('form-feedback');
     const fields = [
         {id: 'title', api: 'title', label: 'o título', max: 150, server: 'Title'},
-        {id: 'owner', api: 'assignee', label: 'o responsável', max: 100, server: 'Assignee'},
+        {id: 'owner', api: 'assignee', label: 'o responsável', server: 'Assignee'},
         {id: 'priority', api: 'priority', label: 'a criticidade', server: 'Priority'},
         {id: 'description', api: 'description', label: 'a descrição', server: 'Description'}
     ];
@@ -131,6 +139,10 @@
     function requiredMessage(field) {
         if (field.id === 'priority') {
             return 'Selecione a criticidade.';
+        }
+
+        if (field.id === 'owner') {
+            return 'Selecione um responsável.';
         }
 
         return 'Informe ' + field.label + '.';
@@ -164,6 +176,12 @@
             focusFirstError();
             return;
         }
+
+        const ownerSelect = document.getElementById('owner');
+        const selectedUser = ownerSelect.selectedOptions[0];
+
+        ticket.assignee = selectedUser.dataset.userName;
+        ticket.assigneeUserId = Number(ownerSelect.value);
 
         let response;
 
