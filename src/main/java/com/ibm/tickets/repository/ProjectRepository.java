@@ -23,4 +23,8 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             ORDER BY p.id
             """, nativeQuery = true)
     List<ProjectCatalogView> findCatalog();
+
+    List<Project> findDistinctByMembers_IdOrderByIdAsc(Long userId);
+    boolean existsByIdAndMembers_Id(Long projectId, Long userId);
+    
 }
