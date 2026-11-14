@@ -3,6 +3,7 @@ package com.ibm.tickets.service;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import com.ibm.tickets.dto.ProjectRequest;
 import com.ibm.tickets.dto.ProjectResponse;
 import com.ibm.tickets.model.Project;
 import com.ibm.tickets.model.User;
+import com.ibm.tickets.model.UserRole;
 import com.ibm.tickets.repository.ProjectRepository;
 import com.ibm.tickets.repository.TicketRepository;
 import com.ibm.tickets.repository.UserRepository;
@@ -149,4 +151,18 @@ public class ProjectService {
                 .sorted()
                 .toList();
     }
+
+    public List<ProjectResponse> getProjectsByUser(Long userId){
+        
+        Set<Long> projectsIds = projectRepository
+                                        .findDistinctByMembers_IdOrderByIdAsc(userId)
+                                        .stream()   
+                                        .map(Project::getId)
+                                        .collect(Collectors.toSet());
+        
+        return getProjects().stream()   
+                    .filter(project -> projectsIds.contains(project.id()))
+                    .toList();
+    }
+
 }
