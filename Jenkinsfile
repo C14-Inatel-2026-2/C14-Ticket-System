@@ -92,6 +92,33 @@ pipeline {
                 }
             }
         }
+
+stage('Check Railway Staging Token') {
+    steps {
+        withCredentials([
+                string(
+                    credentialsId: 'railway-staging-token',
+                    variable: 'RAILWAY_TOKEN'
+                )
+            ]) {
+                sh '''
+                    set -eu
+                    set +x
+
+                    docker run --rm \
+                        -e RAILWAY_TOKEN \
+                        node:22-bookworm-slim \
+                        sh -ec '
+                            npx -y @railway/cli@latest \
+                                service status \
+                                --service c14-tickets-api \
+                                --environment staging
+                        '
+                '''
+            }
+        }
+    }
+
         stage('Deploy to Railway - Staging'){
             when{
                 allOf{
