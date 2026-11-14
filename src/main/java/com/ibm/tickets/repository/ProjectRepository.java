@@ -26,4 +26,8 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             """, nativeQuery = true)
     List<ProjectCatalogView> findCatalog();
     Optional<Project> findFirstByNameOrderByIdAsc(String name);
+
+    List<Project> findDistinctByMembers_IdOrderByIdAsc(Long userId);
+    boolean existsByIdAndMembers_Id(Long projectId, Long userId);
+    
 }
