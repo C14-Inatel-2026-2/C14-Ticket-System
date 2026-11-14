@@ -3,6 +3,7 @@ package com.ibm.tickets.controller.Api;
 
 import com.ibm.tickets.dto.ProjectRequest;
 import com.ibm.tickets.dto.ProjectResponse;
+import com.ibm.tickets.model.UserRole;
 import com.ibm.tickets.service.ProjectService;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -39,6 +41,7 @@ class ProjectControllerTest {
     void setUp() {
         session = new MockHttpSession();
         session.setAttribute("loggedUser", "admin");
+        session.setAttribute("userRole", UserRole.ADMIN.name());
     }
 
     @Test
