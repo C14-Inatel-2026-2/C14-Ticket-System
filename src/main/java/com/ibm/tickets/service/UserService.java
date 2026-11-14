@@ -1,5 +1,6 @@
 package com.ibm.tickets.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.ibm.tickets.dto.CreateUserRequest;
+import com.ibm.tickets.dto.TicketResponse;
 import com.ibm.tickets.dto.UserOptionResponse;
 import com.ibm.tickets.dto.UserProfileResponse;
 import com.ibm.tickets.model.TicketStatus;
@@ -82,6 +84,19 @@ public class UserService {
             .toList();
     }
 
+    public List<UserOptionResponse> getAllUsersByIds(List<Long> usersIds){
+        List<UserOptionResponse> response = new ArrayList<>();
+        for(Long id : usersIds){
+            User user = userRepository.findById(id)
+                                .orElseThrow(() -> new ResponseStatusException(
+                                    HttpStatus.NOT_FOUND,
+                                    "User not found"
+                                ));
+           response.add(toResponse(user));
+        }
+        return response;
+    }
+    
     @Transactional 
     public UserOptionResponse createUser(CreateUserRequest request){
         String name = request.name();
@@ -136,6 +151,19 @@ public class UserService {
 
         userRepository.delete(user);
         userRepository.flush();
+    }
+
+    public List<TicketResponse> getAssignedTickets(Long userId){
+        if(!userRepository.existsById(userId)){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                "User not found."
+            );
+        }
+
+        return ticketRepository.findAllByAssigneeUserIdOrderByCreatedAtDesc(userId)
+                    .stream()
+                    .map(TicketResponse::from)
+                    .toList();
     }
 
     private UserOptionResponse toResponse(User user){

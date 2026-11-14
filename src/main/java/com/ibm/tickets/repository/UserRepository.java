@@ -22,4 +22,5 @@ public interface UserRepository extends JpaRepository<User, Long>{
     Optional<User> findById(Long id);
 
     boolean existsByEmailIgnoreCase(String email);
+    boolean existsById(Long id);
 }

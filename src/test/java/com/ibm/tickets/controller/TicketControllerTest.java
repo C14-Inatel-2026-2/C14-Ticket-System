@@ -37,7 +37,10 @@ import com.ibm.tickets.exception.TicketNotFoundException;
 import com.ibm.tickets.exception.TicketNotInProjectException;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
+import com.ibm.tickets.service.ProjectAccessService;
 import com.ibm.tickets.service.TicketService;
+
+import jakarta.servlet.http.HttpSession;
 
 /**
  * Tests the REST endpoints provided by TicketController.
@@ -47,6 +50,10 @@ import com.ibm.tickets.service.TicketService;
 @WebMvcTest(TicketController.class)
 class TicketControllerTest {
 
+
+    @MockitoBean
+    private ProjectAccessService projectAccessService;
+    
     static Stream<Arguments> invalidCreateFields() {
         return Stream.of(
                 Arguments.of("assignee", "null"), Arguments.of("assignee", "\"\""),
@@ -211,6 +218,10 @@ class TicketControllerTest {
 
         when(ticketService.findAll(null, null, null))
                 .thenReturn(List.of(response));
+
+        
+        when(projectAccessService.hasGlobalAccess(any(HttpSession.class)))
+                .thenReturn(true);
 
         mockMvc.perform(get("/api/tickets")
                 .session(session))
