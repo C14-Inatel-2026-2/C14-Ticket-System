@@ -132,6 +132,22 @@
             </div>
 
             <div class="form-group">
+                <label for="dueDate">Data limite (opcional)</label>
+
+                <input
+                    type="date"
+                    id="dueDate"
+                    name="dueDate"
+                    th:value="${ticket.dueDate}"
+                    aria-describedby="dueDate-hint"
+                >
+
+                <p id="dueDate-hint" class="field-hint">
+                    Você pode alterar ou remover o prazo.
+                </p>
+            </div>
+
+            <div class="form-group">
                 <label for="description">Descrição</label>
 
                 <textarea
@@ -310,7 +326,8 @@
                 assignee: ownerSelect.selectedOptions[0].dataset.userName,
                 assigneeUserId: Number(ownerSelect.value),
                 priority: document.getElementById('priority').value,
-                description: document.getElementById('description').value
+                description: document.getElementById('description').value,
+                dueDate: document.getElementById('dueDate').value || null
             };
 
             try {
