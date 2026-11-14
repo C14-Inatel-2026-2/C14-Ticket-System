@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.ibm.tickets.dto.TicketResponse;
+import com.ibm.tickets.service.ProjectService;
 import com.ibm.tickets.service.TicketService;
 import com.ibm.tickets.service.UserService;
 
@@ -21,10 +22,12 @@ public class TicketWebController {
 
     private final TicketService ticketService;
     private final UserService userService;
+    private final ProjectService projectService;
 
-    public TicketWebController(TicketService ticketService, UserService userService) {
+    public TicketWebController(TicketService ticketService, UserService userService, ProjectService projectService) {
         this.ticketService = ticketService;
         this.userService = userService;
+        this.projectService = projectService;
     }
 
     @GetMapping("/new")
@@ -34,7 +37,8 @@ public class TicketWebController {
     }
 
     @GetMapping
-    public String showTicketList(@PathVariable Long projectId){
+    public String showTicketList(@PathVariable Long projectId, Model model){
+        model.addAttribute("project", projectService.getProject(projectId));
         return "home";
     }
 
