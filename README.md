@@ -258,6 +258,115 @@ Jenkins CI is used to automatically validate builds and tests.
 - **Tests** — `mvn verify` with 121 tests executed, 0 failures, 0 errors, and 0 skipped.
 - **PR** — [#64: Centralize project lookup](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/64).
 
+## AI Usage
+
+### Models and Tools Used
+
+**ChatGPT (OpenAI)** was used as a supporting tool during the development, code review, debugging, and documentation of the C14 Ticket System.
+
+### Purpose of Use
+
+The tool assisted with the following activities:
+
+- **Development:** suggestions for implementing frontend and backend features.
+- **Debugging:** investigating compilation errors, validation issues, and integration problems.
+- **Automated Testing:** assistance in designing and implementing test cases.
+- **Code Review:** analyzing pull requests and identifying potential inconsistencies.
+- **Version Control:** organizing commits and providing guidance on branch integration.
+- **Documentation:** assisting with technical descriptions of features and pull requests.
+
+### Real Prompt Examples and Evaluation of AI Responses
+
+The following examples demonstrate how AI was used throughout the project, including suggestions that were accepted, modified, or rejected.
+
+The original prompts were written in Portuguese and have been translated into English for documentation purposes.
+
+#### Example 1 — Debugging After Branch Integration
+
+**Prompt:**
+
+> I was testing an invalid date and noticed a problem: the list of available project assignees disappeared.
+
+**Result:** ChatGPT helped investigate the access control changes introduced in PR #76, identifying that available ticket assignees were now filtered based on project membership.
+
+**Evaluation:** **Accepted and applied.** The suggestion to verify project membership was followed. Adding the user to the project's members restored her availability as a ticket assignee in the form.
+
+#### Example 2 — Debugging Outdated CSS Styles
+
+**Prompt:**
+
+> I made changes to the CSS files, but the updated styles are not appearing when I run the application. How can I identify and fix this issue?
+
+**Result:** ChatGPT assisted in investigating the execution environment and suggested potential causes related to browser caching and outdated Docker images. The proposed troubleshooting steps included rebuilding the containers using commands such as `docker compose up -d --build` and performing a hard refresh in the browser.
+
+**Evaluation:** **Accepted and applied.** The troubleshooting guidance helped identify the issue and restore the updated styles without requiring changes to the CSS implementation itself.
+
+#### Example 3 — Organizing Version Control
+
+**Prompt:**
+
+> Provide the git add commands to organize the following changes into separate commits for backend, database, frontend, and tests:
+
+The prompt included the output of `git status`, listing modified files across the different application layers, including:
+
+- `src/main/java/com/ibm/tickets/dto/TicketRequest.java`
+- `src/main/java/com/ibm/tickets/dto/TicketResponse.java`
+- `src/main/java/com/ibm/tickets/model/Ticket.java`
+- `src/main/java/com/ibm/tickets/service/TicketService.java`
+- Frontend templates, JavaScript, and CSS files.
+- Controller, DTO, repository, and service test files.
+- `src/main/resources/db/migration/V13__add_ticket_due_date.sql`
+
+**Result:** ChatGPT suggested dividing the changes into four commits according to their responsibilities: database, backend, frontend, and tests.
+
+**Evaluation:** **Accepted.** The commits were created separately, followed by integration with the updated `main` branch and automated test execution.
+
+#### Example 4 — UI Improvement Suggestion
+
+**Context:** Development and review of the **My Tickets** feature, implemented on the user profile page (PR #74).
+
+**AI Suggestion:** Apply additional CSS modifications to improve the visual presentation of the My Tickets section.
+
+**Result:** After reviewing the proposed changes, the decision was made not to implement them, preserving the existing interface design.
+
+**Evaluation:** **Rejected.** The existing implementation already met the project's visual and functional requirements. The proposed modifications were considered unnecessary, and maintaining consistency with the rest of the application was prioritized.
+
+#### Example 5 — Implementing Ticket Due Dates
+
+**Prompt:**
+
+> The due date is not displayed anywhere except in the creation and editing forms. I was able to create and edit tickets correctly, but now we need to make the date visible, record any modifications in the activity history, and display a warning when a ticket is overdue.
+
+**Result:** ChatGPT suggested changes to Thymeleaf templates, JavaScript, CSS, and backend services to display ticket deadlines, highlight overdue tickets, and record due date changes in the activity history.
+
+**Evaluation:** **Accepted and adapted.** The proposed changes were reviewed and integrated into the existing application architecture. The functionality was subsequently verified through manual testing and automated tests.
+
+### AI Usage Workflow
+
+During development, ChatGPT was used as an interactive support tool. Questions, implementation difficulties, and unexpected errors were presented to the tool, which provided explanations, code suggestions, and possible solutions.
+
+The suggestions were reviewed, adapted when necessary, and validated through automated and manual testing.
+
+AI was also used to support the analysis of changes introduced by other team members, particularly when identifying potential incompatibilities between features developed in parallel.
+
+**AI was not responsible for designing or defining the system architecture.** The architectural planning and fundamental technical decisions were made entirely by the development team.
+
+### Manually Performed Activities
+
+AI usage did not replace the team's responsibility for planning, implementing, testing, and validating the application.
+
+The following activities were performed manually:
+
+- Planning and defining the entire system architecture, including the separation of responsibilities between layers and the organization of application components.
+- Selecting technologies and development tools, including Java, Spring Boot, Thymeleaf, PostgreSQL, Flyway, Maven, Docker, and Jenkins.
+- Defining system features, business rules, entities, and database relationships.
+- Integrating and adapting code to the existing project architecture.
+- Executing automated tests and investigating failures.
+- Performing manual tests on forms, overdue indicators, and ticket activity history.
+- Organizing commits, managing branches, and resolving integration issues.
+- Reviewing pull requests and making decisions regarding approvals and merges.
+- Critically evaluating AI-generated suggestions, including accepting, modifying, or rejecting them.
+
 
 ## Requirements
 
