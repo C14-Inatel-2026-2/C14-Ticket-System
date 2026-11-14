@@ -1,6 +1,8 @@
 package com.ibm.tickets.repository;
 
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import com.ibm.tickets.model.Project;
@@ -23,4 +25,5 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             ORDER BY p.id
             """, nativeQuery = true)
     List<ProjectCatalogView> findCatalog();
+    Optional<Project> findFirstByNameOrderByIdAsc(String name);
 }
