@@ -14,10 +14,14 @@ public class WebConfig implements WebMvcConfigurer {
     private final AuthenticationInterceptor authenticationInterceptor;
     private final ProjectPermissionInterceptor projectPermissionInterceptor;
 
+    private final UserPermissionInterceptor userPermissionInterceptor;
+
     public WebConfig(AuthenticationInterceptor authenticationInterceptor,
-            ProjectPermissionInterceptor projectPermissionInterceptor
+        UserPermissionInterceptor userPermissionInterceptor,
+        ProjectPermissionInterceptor projectPermissionInterceptor
     ) {
         this.authenticationInterceptor = authenticationInterceptor;
+        this.userPermissionInterceptor = userPermissionInterceptor;
         this.projectPermissionInterceptor = projectPermissionInterceptor;
     }
 
@@ -33,6 +37,12 @@ public class WebConfig implements WebMvcConfigurer {
            "/api/projects",
            "/api/projects/**",
            "/js/**");
+
+        registry.addInterceptor(userPermissionInterceptor)
+            .addPathPatterns("/users/manage",
+                "/api/users",
+                "/api/users/*"
+            );
 
         registry.addInterceptor(projectPermissionInterceptor)
             .addPathPatterns("/project/**",

@@ -1,0 +1,136 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuários | C14 Tickets</title>
+
+    <link rel="stylesheet" href="/css/projects.css">
+    <link rel="stylesheet" href="/css/user-management.css">
+</head>
+
+<body>
+
+<header class="navbar">
+    <a href="/project" class="brand">C14 Tickets</a>
+
+    <nav>
+        <a href="/project">Projetos</a>
+        <a href="/users/manage" class="active">Usuários</a>
+        <a href="/users/me">Perfil</a>
+
+        <form action="/logout" method="post" class="logout-form">
+            <button type="submit" class="logout-button">Sair</button>
+        </form>
+    </nav>
+</header>
+
+<main class="container">
+
+    <section class="page-header">
+        <div>
+            <h1>Gerenciar usuários</h1>
+            <p>Cadastre e gerencie os usuários do sistema.</p>
+        </div>
+
+        <button id="toggle-form" class="create-project-button">
+            + Novo usuário
+        </button>
+    </section>
+
+    <section id="create-section" class="user-panel" hidden>
+        <h2>Criar usuário</h2>
+
+        <form id="create-user-form">
+            <div class="user-form-grid">
+                <label>
+                    Nome
+                    <input
+                        id="user-name"
+                        type="text"
+                        maxlength="100"
+                        required>
+                </label>
+
+                <label>
+                    E-mail
+                    <input
+                        id="user-email"
+                        type="email"
+                        maxlength="150"
+                        required>
+                </label>
+
+                <label>
+                    Senha
+                    <input
+                        id="user-password"
+                        type="password"
+                        minlength="8"
+                        maxlength="72"
+                        autocomplete="new-password"
+                        required>
+                </label>
+
+                <label>
+                    Role
+                    <select id="user-role" required>
+                        <option value="DEVELOPER">Developer</option>
+                        <option value="TESTER">Tester</option>
+                        <option value="REPORTER">Reporter</option>
+                        <option value="PROJECT_MANAGER">Project Manager</option>
+                        <option value="ADMIN">Admin</option>
+                    </select>
+                </label>
+            </div>
+
+            <p id="form-error" class="user-error" role="alert" hidden></p>
+
+            <div class="user-form-actions">
+                <button type="submit" id="save-user">
+                    Salvar usuário
+                </button>
+
+                <button type="button" id="cancel-form" class="secondary-action">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <section class="user-panel">
+        <div class="user-list-header">
+            <h2>Usuários cadastrados</h2>
+            <span id="user-count"></span>
+        </div>
+
+        <input
+            id="user-search"
+            type="search"
+            placeholder="Buscar por nome ou e-mail..."
+            aria-label="Buscar usuários">
+
+        <div class="user-table-wrapper">
+            <table class="user-table">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>Role</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+
+                <tbody id="users-body"></tbody>
+            </table>
+        </div>
+
+        <p id="list-message" class="user-message" role="status"></p>
+    </section>
+
+</main>
+
+<script src="/js/user-management.js"></script>
+</body>
+</html>
