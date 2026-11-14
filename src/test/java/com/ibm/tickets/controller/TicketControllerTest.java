@@ -468,4 +468,25 @@ class TicketControllerTest {
         mockMvc.perform(get("/api/tickets"))
                 .andExpect(status().isUnauthorized());
     }
+
+	@Test
+	void shouldRejectInvalidDueDate() throws Exception {
+		mockMvc.perform(post("/api/tickets")
+				.session(session)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("""
+						{
+							"title": "Test ticket",
+							"description": "Description",
+							"projectId": 1,
+							"assignee": "Gabriel",
+							"assigneeUserId": 1,
+							"priority": "HIGH",
+							"dueDate": "2026-13-40"
+						}
+						"""))
+				.andExpect(status().isBadRequest());
+
+		verifyNoInteractions(ticketService);
+	}
 }

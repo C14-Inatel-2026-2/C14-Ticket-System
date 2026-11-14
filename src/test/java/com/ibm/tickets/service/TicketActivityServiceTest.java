@@ -4,15 +4,22 @@ package com.ibm.tickets.service;
 import java.time.OffsetDateTime;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.ibm.tickets.dto.TicketActivityResponse;
@@ -24,9 +31,6 @@ import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.repository.TicketActivityRepository;
 import com.ibm.tickets.repository.TicketCommentRepository;
 import com.ibm.tickets.repository.TicketRepository;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TicketActivityServiceTest {
@@ -249,4 +253,38 @@ class TicketActivityServiceTest {
                 commentRepository
         );
     }
+	@Test
+	void shouldRecordDueDateChange() {
+		activityService.record(
+			ticket,
+			"Mariana",
+			"DUE_DATE_CHANGED",
+			"2026-11-20",
+			"2026-11-25"
+		);
+
+		ArgumentCaptor<TicketActivity> captor = ArgumentCaptor.forClass(TicketActivity.class);
+
+		verify(activityRepository).save(captor.capture());
+
+		TicketActivity activity = captor.getValue();
+
+		assertEquals("DUE_DATE_CHANGED", activity.getActivityType());
+		assertEquals("Mariana", activity.getAuthor());
+		assertEquals("2026-11-20", activity.getOldValue());
+		assertEquals("2026-11-25", activity.getNewValue());
+	}
+
+	@Test
+	void shouldNotRecordUnchangedDueDate() {
+		activityService.record(
+			ticket,
+			"Mariana",
+			"DUE_DATE_CHANGED",
+			"2026-11-20",
+			"2026-11-20"
+		);
+
+		verifyNoInteractions(activityRepository);
+	}
 }

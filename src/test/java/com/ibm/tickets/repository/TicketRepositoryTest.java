@@ -1,10 +1,12 @@
 package com.ibm.tickets.repository;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -210,4 +212,42 @@ class TicketRepositoryTest {
 		assertEquals("Matching ticket", tickets.get(0).getTitle());
 	}
 
+        @Test
+        void shouldPersistUpdateAndRemoveTicketDueDate() {
+                Ticket ticket = createTicket("Ticket with deadline", TicketStatus.OPEN);
+
+                Long ticketId = ticketRepository.saveAndFlush(ticket).getId();
+
+                entityManager.clear();
+
+                Ticket saved = ticketRepository.findById(ticketId).orElseThrow();
+                assertNull(saved.getDueDate());
+
+                LocalDate firstDate = LocalDate.of(2026, 11, 20);
+                saved.setDueDate(firstDate);
+                ticketRepository.saveAndFlush(saved);
+
+                entityManager.clear();
+                saved = ticketRepository.findById(ticketId).orElseThrow();
+                assertEquals(firstDate, saved.getDueDate());
+
+                LocalDate updatedDate = LocalDate.of(2026, 11, 25);
+
+                saved.setDueDate(updatedDate);
+                ticketRepository.saveAndFlush(saved);
+
+                entityManager.clear();
+
+                saved = ticketRepository.findById(ticketId).orElseThrow();
+
+                assertEquals(updatedDate, saved.getDueDate());
+
+                saved.setDueDate(null);
+                ticketRepository.saveAndFlush(saved);
+
+                entityManager.clear();
+
+                Ticket reloaded = ticketRepository.findById(ticketId).orElseThrow();
+                assertNull(reloaded.getDueDate());
+        }
 }
