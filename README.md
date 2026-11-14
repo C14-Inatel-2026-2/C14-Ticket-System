@@ -377,6 +377,26 @@ The specification covers ticket management, project management, user authenticat
 📄 **[Functional and Non-Functional Requirements](docs/requirements.md)**
 
 
+## User Stories
+
+The C14 Ticket System's user stories are documented in the following document:
+
+📄 **[User Stories](docs/user-stories.md)**
+
+
+## Jenkins Jobs
+
+The C14 Ticket System's Jenkins pipeline are documented in the following document:
+
+📄 **[Jenkins](docs/jenkins-jobs.md)**
+
+## Agile Development
+
+The C14 Ticket System's Agile Development method are documented in the following document:
+
+📄 **[Agile Development](docs/agile-development.md)**
+
+
 ## Contributors
 
 Before contributing to the project, please read the [Contribution Guidelines](docs/contributing.md).
