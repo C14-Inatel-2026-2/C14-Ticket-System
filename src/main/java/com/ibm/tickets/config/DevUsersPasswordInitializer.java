@@ -40,18 +40,13 @@ public class DevUsersPasswordInitializer
         );
 
         for (String email : emails) {
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new IllegalStateException(
-                            "Demo user not found: " + email
-                    ));
-
-            if (user.getPasswordHash() == null) {
-                user.setPasswordHash(
-                        passwordEncoder.encode("admin")
-                );
-
-                userRepository.save(user);
-            }
+            userRepository.findByEmail(email).ifPresent(user -> {
+                if (user.getPasswordHash() == null) {
+                    user.setPasswordHash(
+                            passwordEncoder.encode("admin")
+                    );
+                    userRepository.save(user);
+            }});
         }
     }
 }
