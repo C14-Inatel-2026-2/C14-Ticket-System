@@ -14,4 +14,9 @@ public class UserWebController {
     public String profile(){
         return "user-profile";
     }
+
+    @GetMapping("/users/manage")
+    public String manageUser(){
+        return "user-management";
+    }
 }

@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long>{
     @Override 
     @EntityGraph(attributePaths = "projects")
     Optional<User> findById(Long id);
+
+    boolean existsByEmailIgnoreCase(String email);
 }

@@ -101,6 +101,11 @@ main {
     letter-spacing: -0.7px;
 }
 
+.project-name {
+    color: var(--muted);
+    font-size: 0.75em;
+    font-weight: 500;
+}
 /* BUTTON */
 
 .new-ticket-button {

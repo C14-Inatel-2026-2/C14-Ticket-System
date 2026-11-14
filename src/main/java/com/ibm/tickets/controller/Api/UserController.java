@@ -1,23 +1,30 @@
 package com.ibm.tickets.controller.Api;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ibm.tickets.dto.CreateUserRequest;
 import com.ibm.tickets.dto.UserActivityResponse;
 import com.ibm.tickets.dto.UserOptionResponse;
 import com.ibm.tickets.dto.UserProfileResponse;
 import com.ibm.tickets.service.UserService;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 
 /**
@@ -95,5 +102,20 @@ public class UserController {
     @GetMapping
     public List<UserOptionResponse> findAllUsers() {
         return userService.getAllUsers();
+    }
+
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long userId, HttpSession session){
+        Object currentUser = session.getAttribute("userId");
+
+        Long currentUserId = currentUser instanceof Long id ? id : null; 
+        userService.deleteUser(userId, currentUserId);
+    }
+
+    @PostMapping 
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserOptionResponse createUser(@Valid @RequestBody CreateUserRequest request){
+        return userService.createUser(request);
     }
 }

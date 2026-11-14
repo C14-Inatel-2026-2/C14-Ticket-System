@@ -12,9 +12,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
     
     private final AuthenticationInterceptor authenticationInterceptor;
+    private final ProjectPermissionInterceptor projectPermissionInterceptor;
 
-    public WebConfig(AuthenticationInterceptor authenticationInterceptor) {
+    private final UserPermissionInterceptor userPermissionInterceptor;
+
+    public WebConfig(AuthenticationInterceptor authenticationInterceptor,
+        UserPermissionInterceptor userPermissionInterceptor,
+        ProjectPermissionInterceptor projectPermissionInterceptor
+    ) {
         this.authenticationInterceptor = authenticationInterceptor;
+        this.userPermissionInterceptor = userPermissionInterceptor;
+        this.projectPermissionInterceptor = projectPermissionInterceptor;
     }
 
     @Override
@@ -29,5 +37,18 @@ public class WebConfig implements WebMvcConfigurer {
            "/api/projects",
            "/api/projects/**",
            "/js/**");
+
+        registry.addInterceptor(userPermissionInterceptor)
+            .addPathPatterns("/users/manage",
+                "/api/users",
+                "/api/users/*"
+            );
+
+        registry.addInterceptor(projectPermissionInterceptor)
+            .addPathPatterns("/project/**",
+                        "/api/projects",
+                        "/api/projects/**");
     }
+
+
 }

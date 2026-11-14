@@ -1,4 +1,3 @@
-
 package com.ibm.tickets.browser;
 
 import java.nio.file.Files;
@@ -17,6 +16,7 @@ import com.microsoft.playwright.BrowserType;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.Route;
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
 
 class TicketSortingBrowserTest {
 
@@ -190,5 +190,17 @@ class TicketSortingBrowserTest {
         assertTrue(lastApiUrl.contains("status=OPEN"));
 
         assertEquals(List.of("2", "3", "4", "1"), getTicketIds());
+    }
+
+    @Test
+    void displaysCreationDateInsteadOfProject() {
+        assertThat(page.locator("thead th").nth(2))
+                .hasText("Data de Criação");
+
+        assertThat(page.locator("#ticket-list tr")
+                .first()
+                .locator("td")
+                .nth(2))
+                .hasText("12/01/2026");
     }
 }
