@@ -41,16 +41,6 @@ public class TicketController {
         this.ticketService = ticketService;
     }
 
-    private void validateTicketProject(Long ticketId, Long projectId) {
-        TicketResponse ticket = ticketService.findById(ticketId);
-
-        if (ticket.projectId() == null || !ticket.projectId().equals(projectId)) {
-            throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND,
-                "Ticket not found in this project");
-        }
-    }
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public TicketResponse create(
@@ -69,8 +59,7 @@ public class TicketController {
 
     @GetMapping("/{id}")
     public TicketResponse findById(@PathVariable Long id, @RequestParam Long projectId) {
-        validateTicketProject(id, projectId);
-        return ticketService.findById(id);
+        return ticketService.findByIdInProject(id, projectId);
     }
 
     @PutMapping("/{id}")
@@ -80,7 +69,7 @@ public class TicketController {
             @Valid @RequestBody TicketRequest request,
             HttpSession session) {
         
-        validateTicketProject(id, projectId);
+        ticketService.findByIdInProject(id, projectId);
 
        if (!request.projectId().equals(projectId)) {
             throw new ResponseStatusException(
@@ -97,7 +86,7 @@ public class TicketController {
             @Valid @RequestBody TicketStatusRequest request,
             HttpSession session) {
 
-        validateTicketProject(id, projectId);
+        ticketService.findByIdInProject(id, projectId);
         return ticketService.updateStatus(id, request.status(), getAuthor(session));
     }
 
@@ -105,7 +94,7 @@ public class TicketController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id, @RequestParam Long projectId) {
         
-        validateTicketProject(id, projectId);
+        ticketService.findByIdInProject(id, projectId);
         ticketService.delete(id);
     }
 

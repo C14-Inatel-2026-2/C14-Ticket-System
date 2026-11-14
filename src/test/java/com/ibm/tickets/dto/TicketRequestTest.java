@@ -42,7 +42,9 @@ class TicketRequestTest {
                 field.equals("title") ? value : "Valid title",
                 field.equals("description") ? value : "Valid description",
                 field.equals("projectId") ? null : 1L,
-                field.equals("assignee") ? value : "Valid owner", TicketPriority.HIGH);
+                field.equals("assignee") ? value : "Valid owner",
+                1L,
+                TicketPriority.HIGH);
         assertTrue(validator.validate(request).stream()
                 .anyMatch(violation -> violation.getPropertyPath().toString().equals(field)));
     }
@@ -50,13 +52,13 @@ class TicketRequestTest {
     @Test
     void acceptsExactLimitsAndDoesNotInventDescriptionLimit() {
         TicketRequest request = new TicketRequest("t".repeat(150), "d".repeat(2000),
-                1L, "a".repeat(100), TicketPriority.HIGH);
+                1L, "a".repeat(100), 1L, TicketPriority.HIGH);
         assertTrue(validator.validate(request).isEmpty());
     }
 
     @Test
     void rejectsMissingPriority() {
-        TicketRequest request = new TicketRequest("Title", "Description", 1L, "Owner", null);
+        TicketRequest request = new TicketRequest("Title", "Description", 1L, "Owner", 1L, null);
         assertTrue(validator.validate(request).stream()
                 .anyMatch(violation -> violation.getPropertyPath().toString().equals("priority")));
     }
@@ -82,6 +84,7 @@ class TicketRequestTest {
                 "The printer is not working",
                 1L,
                 "Gabriel",
+                1L,
                 TicketPriority.HIGH);
 
         Set<ConstraintViolation<TicketRequest>> violations =
@@ -97,6 +100,7 @@ class TicketRequestTest {
                 "The printer is not working",
                 1L,
                 "Gabriel",
+                1L,
                 TicketPriority.HIGH);
 
         Set<ConstraintViolation<TicketRequest>> violations =
@@ -110,4 +114,20 @@ class TicketRequestTest {
                         && violation.getMessage()
                                 .equals("Title is required")));
     }
+    @Test
+	void shouldRejectMissingAssigneeUserId() {
+		TicketRequest request = new TicketRequest(
+				"Title",
+				"Description",
+				1L,
+				"Gabriel",
+				null,
+				TicketPriority.HIGH);
+
+		assertTrue(validator.validate(request).stream()
+				.anyMatch(violation ->
+						violation.getPropertyPath()
+								.toString()
+								.equals("assigneeUserId")));
+	}
 }
