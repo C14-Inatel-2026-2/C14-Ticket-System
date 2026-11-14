@@ -93,32 +93,6 @@ pipeline {
             }
         }
 
-stage('Check Railway Staging Token') {
-    steps {
-        withCredentials([
-                string(
-                    credentialsId: 'railway-staging-token',
-                    variable: 'RAILWAY_TOKEN'
-                )
-            ]) {
-                sh '''
-                    set -eu
-                    set +x
-
-                    docker run --rm \
-                        -e RAILWAY_TOKEN \
-                        node:22-bookworm-slim \
-                        sh -ec '
-                            npx -y @railway/cli@latest \
-                                service status \
-                                --service c14-tickets-api \
-                                --environment staging
-                        '
-                '''
-            }
-        }
-    }
-
         stage('Deploy to Railway - Staging'){
             when{
                 allOf{
@@ -137,18 +111,16 @@ stage('Check Railway Staging Token') {
                     )
                 ]){
                     sh '''
-                        set -eu
-                        set +x
+                       set -eu
+                       set +x
 
-                        docker run --rm \
+                    docker run --rm \
                         -e RAILWAY_TOKEN \
-                        -e IMAGE_TAG="$BUILD_NUMBER" \
                         node:22-bookworm-slim \
                         sh -ec '
-                            npx -y @railway/cli@latest service source connect \
-                            --image "ghcr.io/c14-inatel-2026-2/c14-ticket-system:$IMAGE_TAG" \
-                            --service c14-tickets-api \
-                            --environment staging
+                            npx -y @railway/cli@latest redeploy \
+                                --service c14-tickets-api \
+                                --yes
                         '
                     '''
                 }
@@ -175,15 +147,13 @@ stage('Check Railway Staging Token') {
                         set -eu
                         set +x
 
-                        docker run --rm \
-                            -e RAILWAY_TOKEN \
-                            -e IMAGE_TAG="$BUILD_NUMBER" \
-                            node:22-bookworm-slim \
-                            sh -ec '
-                            npx -y @railway/cli@latest service source connect \
-                            --image "ghcr.io/c14-inatel-2026-2/c14-ticket-system:$IMAGE_TAG" \
-                            --service c14-tickets-api \
-                            --environment production
+                    docker run --rm \
+                        -e RAILWAY_TOKEN \
+                        node:22-bookworm-slim \
+                        sh -ec '
+                            npx -y @railway/cli@latest redeploy \
+                                --service c14-tickets-api \
+                                --yes
                         '
                     '''
                 }
