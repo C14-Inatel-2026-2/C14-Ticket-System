@@ -258,6 +258,16 @@ Jenkins CI is used to automatically validate builds and tests.
 - **Tests** — `mvn verify` with 121 tests executed, 0 failures, 0 errors, and 0 skipped.
 - **PR** — [#64: Centralize project lookup](https://github.com/C14-Inatel-2026-2/C14-Ticket-System/pull/64).
 
+
+## Requirements
+
+The C14 Ticket System's functional and non-functional requirements are documented separately.
+
+The specification covers ticket management, project management, user authentication, role-based access control, security, persistence, and system quality attributes.
+
+📄 **[Functional and Non-Functional Requirements](docs/requirements.md)**
+
+
 ## Contributors
 
 Before contributing to the project, please read the [Contribution Guidelines](docs/contributing.md).
