@@ -102,7 +102,7 @@ class TicketListSecurityBrowserTest {
                 .hasText("<img src=x onerror=alert(1)>");
 
         assertThat(page.locator("#ticket-list td").nth(2))
-                .hasText("<svg onload=alert(1)>");
+                .hasText("Não informada");
 
         assertThat(page.locator("#ticket-list td").nth(3))
                 .hasText("<script>alert(1)</script>");

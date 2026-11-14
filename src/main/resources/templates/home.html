@@ -37,7 +37,9 @@
     <main>
 
         <div class="page-header">
-            <h2>Tickets</h2>
+            <h2>Tickets
+                <span class="project-name" th:text="|— ${project.name}|"></span>
+            </h2>
 
             <a id="new-ticket-button" class="new-ticket-button" href="#">
                 Novo Ticket
@@ -85,7 +87,7 @@
                     <tr>
                         <th>ID</th>
                         <th>Nome do Ticket</th>
-                        <th>Projeto</th>
+                        <th>Data de Criação</th>
                         <th>Responsável</th>
                         <th>Status</th>
                         <th>Prioridade</th>
@@ -174,7 +176,24 @@
             }
         });
     }
+    function formatCreationDate(value) {
+        if (!value) {
+            return "Não informada";
+        }
 
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return "Não informada";
+        }
+
+        return new Intl.DateTimeFormat("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            timeZone: "America/Sao_Paulo"
+        }).format(date);
+    }
     function renderTickets(tickets) {
 
         const ticketList = document.getElementById("ticket-list");
@@ -217,9 +236,9 @@
             titleCell.appendChild(link);
             row.appendChild(titleCell);
 
-            const projectCell = document.createElement("td");
-            projectCell.textContent = ticket.project ?? "";
-            row.appendChild(projectCell);
+            const createdAtCell = document.createElement("td");
+            createdAtCell.textContent = formatCreationDate(ticket.createdAt);
+            row.appendChild(createdAtCell);
 
             const assigneeCell = document.createElement("td");
             assigneeCell.textContent = ticket.assignee ?? "";

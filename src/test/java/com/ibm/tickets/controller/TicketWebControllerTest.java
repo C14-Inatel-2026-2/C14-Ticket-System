@@ -19,11 +19,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import com.ibm.tickets.controller.Web.TicketWebController;
+import com.ibm.tickets.dto.ProjectResponse;
 import com.ibm.tickets.dto.TicketResponse;
 import com.ibm.tickets.dto.UserOptionResponse;
 import com.ibm.tickets.exception.TicketNotInProjectException;
 import com.ibm.tickets.model.TicketPriority;
 import com.ibm.tickets.model.TicketStatus;
+import com.ibm.tickets.service.ProjectService;
 import com.ibm.tickets.service.TicketService;
 import com.ibm.tickets.service.UserService;
 
@@ -42,6 +44,9 @@ public class TicketWebControllerTest {
 
     @MockitoBean
     private UserService userService;
+
+    @MockitoBean
+    private ProjectService projectService;
 
     private MockHttpSession session;
     private Long projectId;
@@ -96,10 +101,21 @@ public class TicketWebControllerTest {
     }
 
     @Test
-    void shouldReturnTicketHomePage() throws Exception{
+    void shouldReturnTicketHomePage() throws Exception {
+        ProjectResponse project = new ProjectResponse(
+                projectId,
+                "Ticket System",
+                "Projeto de teste",
+                4
+        );
+
+        when(projectService.getProject(projectId)).thenReturn(project);
+
         mockMvc.perform(get(baseUrl).session(session))
-        .andExpect(status().isOk())
-        .andExpect(view().name("home"));
+                .andExpect(status().isOk())
+                .andExpect(view().name("home"))
+                .andExpect(model().attribute("project", project))
+                .andExpect(content().string(containsString("— Ticket System")));
     }
 
     @Test
