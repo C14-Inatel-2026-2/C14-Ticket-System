@@ -48,5 +48,10 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
         Long projectId,
         TicketStatus status,
         TicketPriority priority);
+    
+    boolean existsByTitleAndProjectReference_Id(
+    String title,
+    Long projectId
+    );
 
 }
