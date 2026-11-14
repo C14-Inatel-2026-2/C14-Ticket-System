@@ -191,6 +191,13 @@
             focusFirstError();
             return;
         }
+        const dueDateInput = document.getElementById('dueDate');
+
+        if (dueDateInput.validity.badInput) {
+            showFeedback('Informe uma data limite válida ou deixe o campo em branco.');
+            dueDateInput.focus();
+            return;
+        }
 
         const ownerSelect = document.getElementById('owner');
         const selectedUser = ownerSelect.selectedOptions[0];
