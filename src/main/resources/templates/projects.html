@@ -19,12 +19,12 @@
 
     <nav>
         <a href="/project" class="active">Projetos</a>
-        <a href="/users/me">Perfil</a>
         <a href="/users/manage"
         th:if="${session.userRole == 'ADMIN' or session.userRole == 'PROJECT_MANAGER'}">
-            Usuários
+        Usuários
         </a>
 
+        <a href="/users/me">Perfil</a>
 
         <form action="/logout"
               method="post"

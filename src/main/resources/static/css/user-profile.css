@@ -177,85 +177,140 @@ main {
     border-bottom: none;
 }
 
-/* Atividades */
+/* Assigned Tickets */
 
-.section-description {
+.assigned-tickets h3 {
+    font-size: 19px;
+    color: #243b64;
+    margin-bottom: 6px;
+}
+
+.tickets-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.tickets-header p {
     font-size: 14px;
     color: #64748b;
-    margin-bottom: 18px;
-    line-height: 1.6;
 }
 
-.activity-container {
-    width: 100%;
-    overflow-x: auto;
-    padding: 10px 0;
+#tickets-count {
+    font-size: 13px;
+    color: #64748b;
+    white-space: nowrap;
 }
 
-.activity-calendar {
-    display: grid;
-    grid-template-rows: repeat(7, 12px);
-    grid-auto-columns: 12px;
-    grid-auto-flow: column;
-    gap: 4px;
-    width: max-content;
-}
-
-.activity-day {
-    width: 12px;
-    height: 12px;
-    border-radius: 3px;
-    background-color: #e2e8f0;
-}
-
-.level-0 {
-    background-color: #e2e8f0;
-}
-
-.level-1 {
-    background-color: #bfdbfe;
-}
-
-.level-2 {
-    background-color: #93c5fd;
-}
-
-.level-3 {
-    background-color: #60a5fa;
-}
-
-.level-4 {
-    background-color: #3158b7;
-}
-
-.activity-footer {
+.tickets-list {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    margin-top: 15px;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 420px;
+    overflow-y: auto;
 }
 
-.activity-footer p {
+.assigned-ticket {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.2s ease,
+                border-color 0.2s ease;
+}
+
+a.assigned-ticket:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+
+.ticket-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.ticket-title {
+    font-size: 15px;
+    color: #243b64;
+    overflow-wrap: anywhere;
+}
+
+.ticket-project {
     font-size: 13px;
     color: #64748b;
 }
 
-.activity-legend {
+.ticket-badges {
     display: flex;
-    align-items: center;
-    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
 }
 
-.activity-legend span {
-    font-size: 12px;
+.ticket-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.priority-low {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.priority-medium {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.priority-high,
+.priority-urgent {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.status-open {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.status-in_progress {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status-resolved {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-closed {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.tickets-message {
+    padding: 24px 12px;
+    text-align: center;
+    font-size: 14px;
     color: #64748b;
 }
 
-/* Responsividade */
-
 @media (max-width: 600px) {
-
     header {
         padding: 16px 20px;
     }
@@ -281,6 +336,7 @@ main {
     .profile-header {
         gap: 16px;
     }
+
     .avatar {
         width: 68px;
         height: 68px;
@@ -299,8 +355,17 @@ main {
         min-height: 100px;
     }
 
-    .activity-footer {
+    .assigned-ticket {
         flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .ticket-badges {
+        justify-content: flex-start;
+    }
+
+    .tickets-header {
         align-items: flex-start;
     }
 }
@@ -314,5 +379,4 @@ main {
     .back-link {
         font-size: 13px;
     }
-
 }

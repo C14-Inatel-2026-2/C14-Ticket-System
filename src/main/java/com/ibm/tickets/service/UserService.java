@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.ibm.tickets.dto.CreateUserRequest;
+import com.ibm.tickets.dto.TicketResponse;
 import com.ibm.tickets.dto.UserOptionResponse;
 import com.ibm.tickets.dto.UserProfileResponse;
 import com.ibm.tickets.model.TicketStatus;
@@ -136,6 +137,19 @@ public class UserService {
 
         userRepository.delete(user);
         userRepository.flush();
+    }
+
+    public List<TicketResponse> getAssignedTickets(Long userId){
+        if(!userRepository.existsById(userId)){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                "User not found."
+            );
+        }
+
+        return ticketRepository.findAllByAssigneeUserIdOrderByCreatedAtDesc(userId)
+                    .stream()
+                    .map(TicketResponse::from)
+                    .toList();
     }
 
     private UserOptionResponse toResponse(User user){

@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ibm.tickets.dto.CreateUserRequest;
+import com.ibm.tickets.dto.TicketResponse;
 import com.ibm.tickets.dto.UserActivityResponse;
 import com.ibm.tickets.dto.UserOptionResponse;
 import com.ibm.tickets.dto.UserProfileResponse;
@@ -70,29 +71,26 @@ public class UserController {
         return ResponseEntity.ok(userService.getProfile(id));
     }
 
-    // Current method generates random activity data for the past year. 
-    // Future implementation should fetch real activity data from the database.
-    @GetMapping("/me/activity")
-    public ResponseEntity<List<UserActivityResponse>> getActivity(HttpSession session) {
-        String userName = (String) session.getAttribute("loggedUser");
+    
+    @GetMapping("/me/tickets")
+    public ResponseEntity<List<TicketResponse>> getMyTickets(
+            HttpSession session) {
 
-        if(userName == null){
-            return ResponseEntity.status(401).build();
+        Object userId = session.getAttribute("userId");
+
+        if (userId instanceof Long id) {
+            return ResponseEntity.ok(
+                    userService.getAssignedTickets(id)
+            );
         }
 
-        List<UserActivityResponse> activities = new ArrayList<>();
-        Random random = new Random(42);
-
-        LocalDate today = LocalDate.now();
-
-        for(int i = 0; i < 365; i++){
-            LocalDate date = today.minusDays(i);
-
-            int count = random.nextDouble() < 0.45 ? 0 : random.nextInt(9);
-            activities.add(new UserActivityResponse(date, count));
+        if (Boolean.TRUE.equals(session.getAttribute("globalAdmin"))) {
+            return ResponseEntity.ok(List.of());
         }
-        return ResponseEntity.ok(activities);
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
+
 
     @GetMapping("/{userId}")
     public UserProfileResponse getUserProfile(@PathVariable Long userId){
