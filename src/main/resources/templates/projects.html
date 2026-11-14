@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="/css/projects.css">
 </head>
 
-<body>
+<body th:attr="data-can-manage-projects=${session.userRole == 'ADMIN' or session.userRole == 'PROJECT_MANAGER'}">
 
 <header class="navbar">
     <a href="/project" class="brand">Ticket System</a>
@@ -41,9 +41,13 @@
             </p>
         </div>
 
-        <a href="/project/new" class="create-project-button">
+        
+        <a href="/project/new"
+        class="create-project-button"
+        th:if="${session.userRole == 'ADMIN' or session.userRole == 'PROJECT_MANAGER'}">
             + Novo projeto
         </a>
+
     </section>
 
     <section class="toolbar">
@@ -69,7 +73,9 @@
 const grid = document.getElementById("projects-grid");
 const search = document.getElementById("project-search");
 const count = document.getElementById("project-count");
-
+const canManageProjects =
+    document.body.dataset.canManageProjects === "true";
+    
 let projects = [];
 
 function showMessage(message) {
@@ -231,9 +237,11 @@ function renderProjects(items) {
         );
 
         // Menu is NOT inside the main link
-        const menu = createProjectMenu(project);
+        card.appendChild(link);
 
-        card.append(link, menu);
+        if (canManageProjects) {
+            card.appendChild(createProjectMenu(project));
+        }
         grid.appendChild(card);
     });
 }
