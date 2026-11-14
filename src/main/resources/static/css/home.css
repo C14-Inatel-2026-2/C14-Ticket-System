@@ -380,3 +380,31 @@ tbody tr:last-child td {
         gap: 14px;
     }
 }
+
+/* Data limite e indicação de atraso */
+
+.deadline-alert {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    margin-left: 10px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background-color: #fee2e2;
+    color: #b91c1c;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.deadline-alert.deadline-hidden {
+    display: none;
+}
+
+tbody tr.ticket-overdue td {
+    background-color: #fff9f5;
+}
+
+tbody tr.ticket-overdue:hover td {
+    background-color: #fff1e6;
+}

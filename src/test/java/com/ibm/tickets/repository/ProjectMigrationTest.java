@@ -3,10 +3,13 @@ package com.ibm.tickets.repository;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.UUID;
-import org.flywaydb.core.Flyway;
-import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.flywaydb.core.Flyway;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
 /**
  * Verifies fresh installation and additive upgrade without modifying existing tickets.
@@ -50,7 +53,7 @@ class ProjectMigrationTest {
             }
 
             var result = Flyway.configure().dataSource(url, "sa", "").load().migrate();
-            assertEquals(6, result.migrationsExecuted);
+            assertEquals(7, result.migrationsExecuted);
 
             try (var statement = connection.createStatement();
                  var rows = statement.executeQuery("""
@@ -78,7 +81,7 @@ class ProjectMigrationTest {
                         """);
             }
             var result = Flyway.configure().dataSource(url, "sa", "").load().migrate();
-            assertEquals(8, result.migrationsExecuted);
+            assertEquals(9, result.migrationsExecuted);
             try (var statement = connection.createStatement();
                  var rows = statement.executeQuery("""
                          select t.title, t.description, t.project, t.assignee, p.name

@@ -1,0 +1,2 @@
+ALTER TABLE tickets
+    ADD COLUMN due_date DATE;

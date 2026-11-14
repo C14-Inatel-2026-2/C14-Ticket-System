@@ -1,10 +1,13 @@
 package com.ibm.tickets.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -456,5 +459,128 @@ class TicketServiceTest {
 		verify(ticketRepository, never())
 				.saveAndFlush(any(Ticket.class));
 	}
+
+@Test
+void shouldCreateTicketWithDueDate() {
+    LocalDate dueDate = LocalDate.now().plusDays(5);
+
+    TicketRequest request = new TicketRequest(
+            "Ticket with deadline",
+            "Description",
+            PROJECT_ID,
+            "Gabriel",
+            1L,
+            TicketPriority.HIGH,
+            dueDate
+    );
+
+    when(projectRepository.findById(PROJECT_ID))
+            .thenReturn(Optional.of(
+                    createProject(PROJECT_ID, "Internal Systems")
+            ));
+
+    when(userRepository.findById(1L))
+            .thenReturn(Optional.of(createUser(1L, "Gabriel")));
+
+    when(ticketRepository.saveAndFlush(any(Ticket.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+    TicketResponse response = ticketService.create(request);
+
+    assertEquals(dueDate, response.dueDate());
+    assertFalse(response.overdue());
+
+    verify(ticketRepository).saveAndFlush(
+            org.mockito.ArgumentMatchers.argThat(
+                    ticket -> dueDate.equals(ticket.getDueDate())
+            )
+    );
+}
+
+@Test
+void shouldUpdateDueDateAndRecordHistory() {
+    Ticket ticket = createTicket(
+            "Ticket to update",
+            TicketStatus.OPEN
+    );
+
+    ticket.setDueDate(LocalDate.of(2026, 11, 20));
+
+    LocalDate newDueDate = LocalDate.of(2026, 11, 25);
+
+    TicketRequest request = new TicketRequest(
+            "Ticket to update",
+            "Description",
+            PROJECT_ID,
+            "Gabriel",
+            1L,
+            TicketPriority.HIGH,
+            newDueDate
+    );
+
+    when(ticketRepository.findById(1L))
+            .thenReturn(Optional.of(ticket));
+
+    when(projectRepository.findById(PROJECT_ID))
+            .thenReturn(Optional.of(
+                    createProject(PROJECT_ID, "Internal Systems")
+            ));
+
+    when(userRepository.findById(1L))
+            .thenReturn(Optional.of(createUser(1L, "Gabriel")));
+
+    when(ticketRepository.saveAndFlush(ticket))
+            .thenReturn(ticket);
+
+    TicketResponse response =
+            ticketService.update(1L, request, "Mariana");
+
+    assertEquals(newDueDate, response.dueDate());
+
+    verify(activityService).record(
+            ticket,
+            "Mariana",
+            "DUE_DATE_CHANGED",
+            "2026-11-20",
+            "2026-11-25"
+    );
+}
+
+@Test
+void shouldRemoveDueDateAndRecordHistory() {
+    Ticket ticket = createTicket("Ticket to update", TicketStatus.OPEN);
+
+    ticket.setDueDate(LocalDate.of(2026, 11, 20));
+
+    TicketRequest request = new TicketRequest(
+        "Ticket to update",
+        "Description",
+        PROJECT_ID,
+        "Gabriel",
+        1L,
+        TicketPriority.HIGH,
+        null
+    );
+
+    when(ticketRepository.findById(1L)).thenReturn(Optional.of(ticket));
+
+    when(projectRepository.findById(PROJECT_ID)).thenReturn(Optional.of(createProject(PROJECT_ID, "Internal Systems")));
+
+    when(userRepository.findById(1L)).thenReturn(Optional.of(createUser(1L, "Gabriel")));
+
+    when(ticketRepository.saveAndFlush(ticket)).thenReturn(ticket);
+
+    TicketResponse response = ticketService.update(1L, request, "Mariana");
+
+    assertNull(response.dueDate());
+
+    verify(activityService).record(
+        ticket,
+        "Mariana",
+        "DUE_DATE_CHANGED",
+        "2026-11-20",
+        null
+    );
+}
 
 }

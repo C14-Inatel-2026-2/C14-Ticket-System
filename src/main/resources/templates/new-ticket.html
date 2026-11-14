@@ -80,6 +80,21 @@
             </div>
 
             <div class="form-group">
+                <label for="dueDate">Data limite (opcional)</label>
+
+                <input
+                    type="date"
+                    id="dueDate"
+                    name="dueDate"
+                    aria-describedby="dueDate-hint"
+                >
+
+                <p id="dueDate-hint" class="field-hint">
+                    Deixe em branco se o ticket não tiver prazo.
+                </p>
+            </div>
+
+            <div class="form-group">
                 <label for="description">Descrição</label>
 
                 <textarea
@@ -176,6 +191,13 @@
             focusFirstError();
             return;
         }
+        const dueDateInput = document.getElementById('dueDate');
+
+        if (dueDateInput.validity.badInput) {
+            showFeedback('Informe uma data limite válida ou deixe o campo em branco.');
+            dueDateInput.focus();
+            return;
+        }
 
         const ownerSelect = document.getElementById('owner');
         const selectedUser = ownerSelect.selectedOptions[0];
@@ -187,6 +209,7 @@
 
         try {
             ticket.projectId = Number(getProjectId());
+            ticket.dueDate = document.getElementById('dueDate').value || null;
 
             response = await fetch('/api/tickets', {
                 method: 'POST',

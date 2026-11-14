@@ -88,6 +88,7 @@
                         <th>ID</th>
                         <th>Nome do Ticket</th>
                         <th>Data de Criação</th>
+                        <th>Data limite</th>
                         <th>Responsável</th>
                         <th>Status</th>
                         <th>Prioridade</th>
@@ -194,6 +195,16 @@
             timeZone: "America/Sao_Paulo"
         }).format(date);
     }
+
+    function formatDueDate(value) {
+        if (!value) {
+            return "Sem prazo";
+        }
+
+        const [year, month, day] = value.split("-");
+        return `${day}/${month}/${year}`;
+    }
+
     function renderTickets(tickets) {
 
         const ticketList = document.getElementById("ticket-list");
@@ -204,7 +215,7 @@
             const row = document.createElement("tr");
             const cell = document.createElement("td");
 
-            cell.colSpan = 6;
+            cell.colSpan = 7;
             cell.classList.add("empty-message");
             cell.textContent = "Nenhum ticket encontrado.";
 
@@ -239,6 +250,25 @@
             const createdAtCell = document.createElement("td");
             createdAtCell.textContent = formatCreationDate(ticket.createdAt);
             row.appendChild(createdAtCell);
+
+            const dueDateCell = document.createElement("td");
+
+            const dueDateText = document.createElement("span");
+            dueDateText.textContent = formatDueDate(ticket.dueDate);
+
+            dueDateCell.appendChild(dueDateText);
+
+            if (ticket.overdue) {
+                const overdueBadge = document.createElement("span");
+
+                overdueBadge.className = "deadline-alert";
+                overdueBadge.textContent = "Atrasado";
+
+                dueDateCell.appendChild(overdueBadge);
+                row.classList.add("ticket-overdue");
+            }
+
+            row.appendChild(dueDateCell);
 
             const assigneeCell = document.createElement("td");
             assigneeCell.textContent = ticket.assignee ?? "";

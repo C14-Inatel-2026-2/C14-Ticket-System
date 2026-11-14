@@ -425,3 +425,7 @@
         width: 100%;
     }
 }
+
+.deadline-detail {
+    grid-column: 1 / -1;
+}

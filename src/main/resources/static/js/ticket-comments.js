@@ -73,9 +73,22 @@ async function updateTicketStatus() {
             throw new Error(`Erro HTTP ${response.status}`);
         }
 
+        const updatedTicket = await response.json();
         statusSelect.dataset.currentStatus = newStatus;
 
         updateStatusBadge(newStatus);
+
+        const overdueBadge = document.getElementById(
+            "deadline-overdue-badge"
+        );
+
+        if (overdueBadge) {
+            overdueBadge.classList.toggle(
+                "deadline-hidden",
+                !updatedTicket.overdue
+            );
+        }
+
         statusFeedback.textContent = "Status atualizado com sucesso!";
 
         await loadActivities();
@@ -136,6 +149,15 @@ function translatePriority(priority) {
     return labels[priority] || priority;
 }
 
+function formatHistoryDueDate(value) {
+    if (!value) {
+        return "sem prazo";
+    }
+
+    const [year, month, day] = value.split("-");
+    return `${day}/${month}/${year}`;
+}
+
 function describeActivity(activity) {
     switch (activity.activityType) {
         case "STATUS_CHANGED":
@@ -152,6 +174,23 @@ function describeActivity(activity) {
             return `Alterou o responsável de ${
                 activity.oldValue
             } para ${activity.newValue}.`;
+
+        case "DUE_DATE_CHANGED":
+            if (!activity.oldValue) {
+                return `Definiu a data limite para ${
+                    formatHistoryDueDate(activity.newValue)
+                }.`;
+            }
+
+            if (!activity.newValue) {
+                return "Removeu a data limite do ticket.";
+            }
+
+            return `Alterou a data limite de ${
+                formatHistoryDueDate(activity.oldValue)
+            } para ${
+                formatHistoryDueDate(activity.newValue)
+            }.`;
 
         default:
             return "Atualizou o ticket.";
