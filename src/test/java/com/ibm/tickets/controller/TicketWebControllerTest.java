@@ -93,7 +93,9 @@ public class TicketWebControllerTest {
                         "PROJECT_MANAGER")
         );
 
-        when(userService.getAllUsers()).thenReturn(users);
+        List<Long> membersIds = users.stream().map(user -> user.id()).toList();
+        when(projectService.getMemberIds(projectId)).thenReturn(membersIds);
+        when(userService.getAllUsersByIds(membersIds)).thenReturn(users);
 
         mockMvc.perform(get(baseUrl + "/new")
                 .session(session))
