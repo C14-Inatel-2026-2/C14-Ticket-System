@@ -2,43 +2,70 @@ services:
   postgres:
     image: postgres:17-alpine
     container_name: c14-tickets-db
-
     environment:
       POSTGRES_DB: tickets
       POSTGRES_USER: tickets
       POSTGRES_PASSWORD: tickets
-
     ports:
       - "5432:5432"
-
     volumes:
       - postgres-data:/var/lib/postgresql/data
-
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U tickets -d tickets"]
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
 
   app:
     build:
       context: .
       dockerfile: Dockerfile
-
     image: ghcr.io/c14-inatel-2026-2/c14-ticket-system:latest
     container_name: c14-tickets-api
-
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tickets
       SPRING_DATASOURCE_USERNAME: tickets
       SPRING_DATASOURCE_PASSWORD: tickets
-
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,prometheus
     ports:
       - "8080:8080"
-
     depends_on:
       postgres:
         condition: service_healthy
+    restart: unless-stopped
+
+  jenkins:
+    build:
+      context: .
+      dockerfile: jenkins/Dockerfile
+    image: jenkins:local
+    container_name: jenkins
+    user: "0:0"
+    ports:
+      - "127.0.0.1:8081:8080"
+    volumes:
+      - jenkins-home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    container_name: c14-s07-prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      - app
+    restart: unless-stopped
 
 volumes:
   postgres-data:
+  jenkins-home:
+  prometheus-data:
