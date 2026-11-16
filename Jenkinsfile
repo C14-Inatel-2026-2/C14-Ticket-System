@@ -93,6 +93,48 @@ pipeline {
             }
         }
 
+
+        stage('Push Image to Docker Hub') {
+            when {
+                branch 'main'
+            }
+
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'dockerhub-credentials',
+                        usernameVariable: 'DOCKERHUB_USER',
+                        passwordVariable: 'DOCKERHUB_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        set -eu
+                        set +x
+
+                        export DOCKER_CONFIG="$(mktemp -d)"
+                        trap 'rm -rf "$DOCKER_CONFIG"' EXIT
+
+                        echo "$DOCKERHUB_TOKEN" | docker login \
+                            --username "$DOCKERHUB_USER" \
+                            --password-stdin
+
+                        SOURCE_IMAGE="ghcr.io/c14-inatel-2026-2/c14-ticket-system"
+                        TARGET_IMAGE="$DOCKERHUB_USER/c14-ticket-system"
+
+                        docker tag "$SOURCE_IMAGE:${BUILD_NUMBER}" \
+                            "$TARGET_IMAGE:${BUILD_NUMBER}"
+
+                        docker tag "$SOURCE_IMAGE:${BUILD_NUMBER}" \
+                            "$TARGET_IMAGE:latest"
+
+                        docker push "$TARGET_IMAGE:${BUILD_NUMBER}"
+                        docker push "$TARGET_IMAGE:latest"
+                    '''
+                }
+            }
+        }
+
+
         stage('Deploy to Railway - Staging'){
             when{
                 allOf{
