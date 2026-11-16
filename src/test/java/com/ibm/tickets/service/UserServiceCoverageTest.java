@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.ibm.tickets.dto.CreateUserRequest;
+import com.ibm.tickets.dto.UserOptionResponse;
 import com.ibm.tickets.model.Project;
 import com.ibm.tickets.model.Ticket;
 import com.ibm.tickets.model.TicketPriority;
@@ -20,6 +21,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /** @author Gabriel Guimaraes */
 class UserServiceCoverageTest {
@@ -84,10 +86,11 @@ class UserServiceCoverageTest {
             assertEquals("alice@example.com", candidate.getEmail());
             assertEquals(UserRole.TESTER, candidate.getRole());
             assertEquals("hashed", candidate.getPasswordHash());
-            return user(12L, "Alice");
+            ReflectionTestUtils.setField(candidate, "id", 12L);
+            return candidate;
         });
         var result = service.createUser(request());
-        assertEquals(12L, result.id());
+        assertEquals(new UserOptionResponse(12L, "Alice", "alice@example.com", "TESTER"), result);
         verify(users).existsByEmailIgnoreCase("alice@example.com");
         verify(encoder).encode("secret123");
     }
