@@ -62,6 +62,14 @@ pipeline {
             steps {
                 sh './mvnw package -DskipTests'
             }
+            post{
+                success {
+                    archiveArtifacts(
+                        artifacts: 'target/*.jar',
+                        fingerprint: true
+                    )
+                }
+            }
         }
         stage ('Build and Push Image') {
             when {
