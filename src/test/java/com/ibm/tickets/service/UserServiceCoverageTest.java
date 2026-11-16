@@ -167,4 +167,3 @@ class UserServiceCoverageTest {
         return exception;
     }
 }
-
