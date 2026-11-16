@@ -161,4 +161,28 @@ pipeline {
     }
 
     }
+
+    
+    post {
+        always {
+            script {
+                try {
+                    withEnv(["BUILD_STATUS=${currentBuild.currentResult}"]) {
+                        withCredentials([
+                            usernamePassword(
+                                credentialsId: 'smtp-credentials',
+                                usernameVariable: 'SMTP_USERNAME',
+                                passwordVariable: 'SMTP_PASSWORD'
+                            )
+                        ]) {
+                            sh 'python3 scripts/notify.py'
+                        }
+                    }
+                } catch (Exception ignored) {
+                    echo 'WARNING: Email notification could not be sent. The pipeline result is unchanged.'
+                }
+            }
+        }
+    }
+
 }
