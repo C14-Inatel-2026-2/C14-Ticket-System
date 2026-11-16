@@ -1,0 +1,5 @@
+services:
+  app:
+    build: !reset null
+    image: rodrigotheoneandonly/c14-ticket-system:latest
+    pull_policy: always
