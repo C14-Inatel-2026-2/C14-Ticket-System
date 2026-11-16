@@ -134,3 +134,10 @@ When `DEPLOY_ENV=both`, the staging stage runs before production. **There is cur
 | `main` + `production` | Yes | Yes | No | Yes |
 | `main` + `both` | Yes | Yes | Yes | Yes |
 
+## Email Notifications — Configuration and Troubleshooting
+
+After the pipeline stages finish, the global `post { always { ... } }` block calls `scripts/notify.py` to email the build result.
+
+Email delivery is **non-blocking**: if sending fails, Jenkins logs a warning without changing the pipeline result.
+
+For setup instructions, see [Jenkins Email Notification Configuration](jenkinsEmailConfiguration.md).
